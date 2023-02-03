@@ -22,3 +22,4 @@ bin/parallel-lint
 .php_cs.cache
 .idea
 .vscode
+/zf1-future.iml
