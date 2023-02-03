@@ -1,6 +1,6 @@
 {
-    "name": "shardj/zf1-future",
-    "description": "Zend Framework 1. The aim is to keep ZF1 working with the latest PHP versions",
+    "name": "opus4/zf1-future",
+    "description": "ZF1-Future library modified for PHPUnit 8 to support OPUS 4 development temporarily.",
     "type": "library",
     "keywords": [
         "framework",
