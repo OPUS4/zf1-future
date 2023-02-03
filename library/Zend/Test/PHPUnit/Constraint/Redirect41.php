@@ -20,6 +20,9 @@
  * @version    $Id$
  */
 
+use PHPUnit\Framework\Constraint\Constraint;
+use PHPUnit\Framework\ExpectationFailedException;
+
 /**
  * Redirection constraints
  *
@@ -30,7 +33,7 @@
  * @copyright  Copyright (c) 2005-2015 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class Zend_Test_PHPUnit_Constraint_Redirect41 extends PHPUnit_Framework_Constraint
+class Zend_Test_PHPUnit_Constraint_Redirect41 extends Constraint
 {
     /**#@+
      * Assertion type constants
@@ -110,7 +113,7 @@ class Zend_Test_PHPUnit_Constraint_Redirect41 extends PHPUnit_Framework_Constrai
     {
         if (!$other instanceof Zend_Controller_Response_Abstract) {
             require_once 'Zend/Test/PHPUnit/Constraint/Exception.php';
-            throw new Zend_Test_PHPUnit_Constraint_Exception('Redirect constraint assertions require a response object');
+            throw new ExpectationFailedException('Redirect constraint assertions require a response object');
         }
 
         if (strstr($assertType, 'Not')) {
@@ -120,7 +123,7 @@ class Zend_Test_PHPUnit_Constraint_Redirect41 extends PHPUnit_Framework_Constrai
 
         if (!in_array($assertType, $this->_assertTypes)) {
             require_once 'Zend/Test/PHPUnit/Constraint/Exception.php';
-            throw new Zend_Test_PHPUnit_Constraint_Exception(sprintf('Invalid assertion type "%s" provided to %s constraint', $assertType, __CLASS__));
+            throw new ExpectationFailedException(sprintf('Invalid assertion type "%s" provided to %s constraint', $assertType, __CLASS__));
         }
 
         $this->_assertType = $assertType;
@@ -133,7 +136,7 @@ class Zend_Test_PHPUnit_Constraint_Redirect41 extends PHPUnit_Framework_Constrai
             case self::ASSERT_REDIRECT_TO:
                 if (3 > $argc) {
                     require_once 'Zend/Test/PHPUnit/Constraint/Exception.php';
-                    throw new Zend_Test_PHPUnit_Constraint_Exception('No redirect URL provided against which to match');
+                    throw new ExpectationFailedException('No redirect URL provided against which to match');
                 }
                 $this->_match = $match = $argv[2];
                 return ($this->_negate)
@@ -142,7 +145,7 @@ class Zend_Test_PHPUnit_Constraint_Redirect41 extends PHPUnit_Framework_Constrai
             case self::ASSERT_REDIRECT_REGEX:
                 if (3 > $argc) {
                     require_once 'Zend/Test/PHPUnit/Constraint/Exception.php';
-                    throw new Zend_Test_PHPUnit_Constraint_Exception('No pattern provided against which to match redirect');
+                    throw new ExpectationFailedException('No pattern provided against which to match redirect');
                 }
                 $this->_match = $match = $argv[2];
                 return ($this->_negate)
@@ -168,7 +171,7 @@ class Zend_Test_PHPUnit_Constraint_Redirect41 extends PHPUnit_Framework_Constrai
      * @param  string $description Additional message to display
      * @param  bool $not
      * @return void
-     * @throws PHPUnit_Framework_ExpectationFailedException
+     * @throws ExpectationFailedException
      * NOTE:
      * Drastic changes up to PHPUnit 3.5.15 this was:
      *     public function fail($other, $description, $not = false)
@@ -178,7 +181,7 @@ class Zend_Test_PHPUnit_Constraint_Redirect41 extends PHPUnit_Framework_Constrai
      * NOTE 2:
      * Interface changed again in PHPUnit 4.1.0 because of refactoring to SebastianBergmann\Comparator
      */
-    public function fail($other, $description, \SebastianBergmann\Comparator\ComparisonFailure $cannot_be_used = NULL)
+    public function fail($other, $description, ?\SebastianBergmann\Comparator\ComparisonFailure $cannot_be_used = NULL): void
     {
         require_once 'Zend/Test/PHPUnit/Constraint/Exception.php';
         switch ($this->_assertType) {
@@ -218,7 +221,7 @@ class Zend_Test_PHPUnit_Constraint_Redirect41 extends PHPUnit_Framework_Constrai
             $failure = $description . "\n" . $failure;
         }
 
-        throw new Zend_Test_PHPUnit_Constraint_Exception($failure);
+        throw new ExpectationFailedException($failure);
     }
 
     /**
@@ -226,7 +229,7 @@ class Zend_Test_PHPUnit_Constraint_Redirect41 extends PHPUnit_Framework_Constrai
      *
      * @return string
      */
-    public function toString()
+    public function toString(): string
     {
         return '';
     }

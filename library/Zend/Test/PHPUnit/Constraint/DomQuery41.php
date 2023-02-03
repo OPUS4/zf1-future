@@ -23,6 +23,9 @@
 /** @see Zend_Dom_Query */
 require_once 'Zend/Dom/Query.php';
 
+use PHPUnit\Framework\Constraint\Constraint;
+use PHPUnit\Framework\ExpectationFailedException;
+
 /**
  * Zend_Dom_Query-based PHPUnit Constraint
  *
@@ -33,7 +36,7 @@ require_once 'Zend/Dom/Query.php';
  * @copyright  Copyright (c) 2005-2015 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
-class Zend_Test_PHPUnit_Constraint_DomQuery41 extends PHPUnit_Framework_Constraint
+class Zend_Test_PHPUnit_Constraint_DomQuery41 extends Constraint
 {
     /**#@+
      * Assertion type constants
@@ -158,7 +161,7 @@ class Zend_Test_PHPUnit_Constraint_DomQuery41 extends PHPUnit_Framework_Constrai
 
         if (!in_array($assertType, $this->_assertTypes)) {
             require_once 'Zend/Test/PHPUnit/Constraint/Exception.php';
-            throw new Zend_Test_PHPUnit_Constraint_Exception(sprintf('Invalid assertion type "%s" provided to %s constraint', $assertType, __CLASS__));
+            throw new ExpectationFailedException(sprintf('Invalid assertion type "%s" provided to %s constraint', $assertType, __CLASS__));
         }
 
         $this->_assertType = $assertType;
@@ -172,7 +175,7 @@ class Zend_Test_PHPUnit_Constraint_DomQuery41 extends PHPUnit_Framework_Constrai
             case self::ASSERT_CONTENT_CONTAINS:
                 if (!$match) {
                     require_once 'Zend/Test/PHPUnit/Constraint/Exception.php';
-                    throw new Zend_Test_PHPUnit_Constraint_Exception('No content provided against which to match');
+                    throw new ExpectationFailedException('No content provided against which to match');
                 }
                 $this->_content = $match;
                 return ($this->_negate)
@@ -181,7 +184,7 @@ class Zend_Test_PHPUnit_Constraint_DomQuery41 extends PHPUnit_Framework_Constrai
             case self::ASSERT_CONTENT_REGEX:
                 if (!$match) {
                     require_once 'Zend/Test/PHPUnit/Constraint/Exception.php';
-                    throw new Zend_Test_PHPUnit_Constraint_Exception('No pattern provided against which to match');
+                    throw new ExpectationFailedException('No pattern provided against which to match');
                 }
                 $this->_content = $match;
                 return ($this->_negate)
@@ -192,7 +195,7 @@ class Zend_Test_PHPUnit_Constraint_DomQuery41 extends PHPUnit_Framework_Constrai
             case self::ASSERT_CONTENT_COUNT_MAX:
                 if ($match === false) {
                     require_once 'Zend/Test/PHPUnit/Constraint/Exception.php';
-                    throw new Zend_Test_PHPUnit_Constraint_Exception('No count provided against which to compare');
+                    throw new ExpectationFailedException('No count provided against which to compare');
                 }
                 $this->_content = $match;
                 return $this->_countContent($result, $match, $assertType);
@@ -214,7 +217,7 @@ class Zend_Test_PHPUnit_Constraint_DomQuery41 extends PHPUnit_Framework_Constrai
      * @param  string   Failure description
      * @param  object   Cannot be used, null
      * @return void
-     * @throws PHPUnit_Framework_ExpectationFailedException
+     * @throws ExpectationFailedException
      * NOTE:
      * Drastic changes up to PHPUnit 3.5.15 this was:
      *     public function fail($other, $description, $not = false)
@@ -224,9 +227,8 @@ class Zend_Test_PHPUnit_Constraint_DomQuery41 extends PHPUnit_Framework_Constrai
      * NOTE 2:
      * Interface changed again in PHPUnit 4.1.0 because of refactoring to SebastianBergmann\Comparator
      */
-    public function fail($other, $description, \SebastianBergmann\Comparator\ComparisonFailure $cannot_be_used = NULL)
+    public function fail($other, $description, ?\SebastianBergmann\Comparator\ComparisonFailure $cannot_be_used = NULL): void
     {
-        require_once 'Zend/Test/PHPUnit/Constraint/Exception.php';
         switch ($this->_assertType) {
             case self::ASSERT_CONTENT_CONTAINS:
                 $failure = 'Failed asserting node denoted by %s CONTAINS content "%s"';
@@ -271,7 +273,7 @@ class Zend_Test_PHPUnit_Constraint_DomQuery41 extends PHPUnit_Framework_Constrai
             $failure = $description . "\n" . $failure;
         }
 
-        throw new Zend_Test_PHPUnit_Constraint_Exception($failure);
+        throw new ExpectationFailedException($failure);
     }
 
     /**
@@ -279,7 +281,7 @@ class Zend_Test_PHPUnit_Constraint_DomQuery41 extends PHPUnit_Framework_Constrai
      *
      * @return string
      */
-    public function toString()
+    public function toString(): string
     {
         return '';
     }
