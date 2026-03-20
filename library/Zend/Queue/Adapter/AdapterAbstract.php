@@ -45,12 +45,12 @@ abstract class Zend_Queue_Adapter_AdapterAbstract
     /**
      * Default timeout for createQueue() function
      */
-    const CREATE_TIMEOUT_DEFAULT = 30;
+    public const CREATE_TIMEOUT_DEFAULT = 30;
 
     /**
      * Default timeout for recieve() function
      */
-    const RECEIVE_TIMEOUT_DEFAULT = 30;
+    public const RECEIVE_TIMEOUT_DEFAULT = 30;
 
     /**
      * User-provided options
@@ -92,11 +92,11 @@ abstract class Zend_Queue_Adapter_AdapterAbstract
      * port           => (string) The port of the database
      *
      * @param  array|Zend_Config $config An array having configuration data
-     * @param  Zend_Queue The Zend_Queue object that created this class
+     * @param  Zend_Queue $queue The Zend_Queue object that created this class
      * @return void
      * @throws Zend_Queue_Exception
      */
-    public function __construct($options, Zend_Queue $queue = null)
+    public function __construct($options, ?Zend_Queue $queue = null)
     {
         if ($options instanceof Zend_Config) {
             $options = $options->toArray();

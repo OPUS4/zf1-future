@@ -33,6 +33,11 @@ require_once 'Zend/Stdlib/CallbackHandler.php';
 class Zend_EventManager_FilterChain implements Zend_EventManager_Filter
 {
     /**
+     * @var Zend_EventManager_ResponseCollection
+     */
+    protected $responses;
+
+    /**
      * @var Zend_EventManager_Filter_FilterIterator All filters
      */
     protected $filters;
@@ -77,7 +82,7 @@ class Zend_EventManager_FilterChain implements Zend_EventManager_Filter
     /**
      * Connect a filter to the chain
      *
-     * @param  callback $callback PHP Callback
+     * @param  callable $callback PHP Callback
      * @param  int      $priority Priority in the queue at which to execute; defaults to 1 (higher numbers == higher priority)
      * @throws Zend_Stdlib_Exception_InvalidCallbackException
      * @return Zend_Stdlib_CallbackHandler (to allow later unsubscribe)

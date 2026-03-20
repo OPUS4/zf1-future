@@ -45,7 +45,7 @@ require_once('Zend/Gdata/Query.php');
 class Zend_Gdata_Spreadsheets_DocumentQuery extends Zend_Gdata_Query
 {
 
-    const SPREADSHEETS_FEED_URI = 'https://spreadsheets.google.com/feeds';
+    public const SPREADSHEETS_FEED_URI = 'https://spreadsheets.google.com/feeds';
 
     protected $_defaultFeedUri = self::SPREADSHEETS_FEED_URI;
     protected $_documentType;
@@ -66,7 +66,7 @@ class Zend_Gdata_Spreadsheets_DocumentQuery extends Zend_Gdata_Query
      * Sets the spreadsheet key for this query.
      *
      * @param string $value
-     * @return Zend_Gdata_Spreadsheets_DocumentQuery Provides a fluent interface
+     * @return $this
      */
     public function setSpreadsheetKey($value)
     {
@@ -88,7 +88,7 @@ class Zend_Gdata_Spreadsheets_DocumentQuery extends Zend_Gdata_Query
      * Sets the worksheet id for this query.
      *
      * @param string $value
-     * @return Zend_Gdata_Spreadsheets_DocumentQuery Provides a fluent interface
+     * @return $this
      */
     public function setWorksheetId($value)
     {
@@ -109,7 +109,7 @@ class Zend_Gdata_Spreadsheets_DocumentQuery extends Zend_Gdata_Query
     /**
      * Sets the document type for this query.
      * @param string $value spreadsheets or worksheets
-     * @return Zend_Gdata_Spreadsheets_DocumentQuery Provides a fluent interface
+     * @return $this
      */
     public function setDocumentType($value)
     {
@@ -129,7 +129,7 @@ class Zend_Gdata_Spreadsheets_DocumentQuery extends Zend_Gdata_Query
     /**
      * Sets the projection for this query.
      * @param string $value
-     * @return Zend_Gdata_Spreadsheets_DocumentQuery Provides a fluent interface
+     * @return $this
      */
     public function setProjection($value)
     {
@@ -139,7 +139,7 @@ class Zend_Gdata_Spreadsheets_DocumentQuery extends Zend_Gdata_Query
 
     /**
      * Sets the visibility for this query.
-     * @return Zend_Gdata_Spreadsheets_DocumentQuery Provides a fluent interface
+     * @return $this
      */
     public function setVisibility($value)
     {
@@ -168,7 +168,7 @@ class Zend_Gdata_Spreadsheets_DocumentQuery extends Zend_Gdata_Query
     /**
      * Sets the title attribute for this query.
      * @param string $value
-     * @return Zend_Gdata_Spreadsheets_DocumentQuery Provides a fluent interface
+     * @return $this
      */
     public function setTitle($value)
     {
@@ -183,7 +183,7 @@ class Zend_Gdata_Spreadsheets_DocumentQuery extends Zend_Gdata_Query
     /**
      * Sets the title-exact attribute for this query.
      * @param string $value
-     * @return Zend_Gdata_Spreadsheets_DocumentQuery Provides a fluent interface
+     * @return $this
      */
     public function setTitleExact($value)
     {

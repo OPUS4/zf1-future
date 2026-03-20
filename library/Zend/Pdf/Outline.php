@@ -33,6 +33,12 @@
  */
 abstract class Zend_Pdf_Outline implements RecursiveIterator, Countable
 {
+    protected $_title;
+    protected $_color;
+    protected $_italic;
+    protected $_bold;
+    protected $_target;
+
     /**
      * True if outline is open.
      *
@@ -282,8 +288,8 @@ abstract class Zend_Pdf_Outline implements RecursiveIterator, Countable
     abstract public function dumpOutline(Zend_Pdf_ElementFactory_Interface $factory,
                                                                            $updateNavigation,
                                                           Zend_Pdf_Element $parent,
-                                                          Zend_Pdf_Element $prev = null,
-                                                          SplObjectStorage $processedOutlines = null);
+                                                          ?Zend_Pdf_Element $prev = null,
+                                                          ?SplObjectStorage $processedOutlines = null);
 
 
     ////////////////////////////////////////////////////////////////////////

@@ -34,7 +34,7 @@ require_once 'Zend/Locale/Data.php';
  */
 class Zend_Locale_Format
 {
-    const STANDARD   = 'auto';
+    public const STANDARD   = 'auto';
 
     private static $_options = ['date_format'   => null,
                                      'number_format' => null,
@@ -516,6 +516,10 @@ class Zend_Locale_Format
         if (!self::_getUniCodeSupport()) {
             trigger_error("Sorry, your PCRE extension does not support UTF8 which is needed for the I18N core", E_USER_NOTICE);
         }
+        
+        if($input === null ) {
+            return FALSE;
+        }
 
         $options = self::_checkOptions($options) + self::$_options;
 
@@ -524,11 +528,14 @@ class Zend_Locale_Format
 
         $regexs = Zend_Locale_Format::_getRegexForType('decimalnumber', $options);
         $regexs = array_merge($regexs, Zend_Locale_Format::_getRegexForType('scientificnumber', $options));
-        if (!empty($input) && ($input[0] == $symbols['decimal'])) {
+        
+        $firstChar = substr($input,0,1);
+        
+        if (!empty($input) && ($firstChar == $symbols['decimal'])) {
             $input = 0 . $input;
         }
         foreach ($regexs as $regex) {
-            preg_match($regex, $input, $found);
+            preg_match($regex, (string) $input, $found);
             if (isset($found[0])) {
                 return true;
             }
@@ -800,7 +807,7 @@ class Zend_Locale_Format
             }
         }
 
-        return implode($converted);
+        return implode('', $converted);
     }
 
     /**

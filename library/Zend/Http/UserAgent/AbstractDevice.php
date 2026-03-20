@@ -33,6 +33,10 @@ require_once 'Zend/Http/UserAgent/Device.php';
 abstract class Zend_Http_UserAgent_AbstractDevice
     implements Zend_Http_UserAgent_Device
 {
+    public $device_os;
+
+    public $list;
+
     /**
      * Browser signature
      *
@@ -297,7 +301,7 @@ abstract class Zend_Http_UserAgent_AbstractDevice
         $server = [];
 
         // gets info from user agent chain
-        $uaExtract = $this->extractFromUserAgent($this->getUserAgent());
+        $uaExtract = static::extractFromUserAgent($this->getUserAgent());
 
         if (is_array($uaExtract)) {
             foreach ($uaExtract as $key => $info) {

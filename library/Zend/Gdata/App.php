@@ -67,13 +67,13 @@ class Zend_Gdata_App
       *
       * @see _majorProtocolVersion
       */
-    const DEFAULT_MAJOR_PROTOCOL_VERSION = 1;
+    public const DEFAULT_MAJOR_PROTOCOL_VERSION = 1;
 
     /** Default minor protocol version.
       *
       * @see _minorProtocolVersion
       */
-    const DEFAULT_MINOR_PROTOCOL_VERSION = null;
+    public const DEFAULT_MINOR_PROTOCOL_VERSION = null;
 
     /**
      * Client object used to communicate
@@ -243,7 +243,7 @@ class Zend_Gdata_App
      *
      * @param Zend_Http_Client $client The client to use for communication
      * @throws Zend_Gdata_App_HttpException
-     * @return Zend_Gdata_App Provides a fluent interface
+     * @return $this
      */
     public function setHttpClient($client,
         $applicationId = 'MyCompany-MyApp-1.0')
@@ -997,9 +997,9 @@ class Zend_Gdata_App
      * Update an entry
      *
      * @param mixed $data Zend_Gdata_App_Entry or XML (w/ID and link rel='edit')
-     * @param string|null The URI to send requests to, or null if $data
+     * @param string|null $uri The URI to send requests to, or null if $data
      *        contains the URI.
-     * @param string|null The name of the class that should be deserialized
+     * @param string|null $className The name of the class that should be deserialized
      *        from the server response. If null, then 'Zend_Gdata_App_Entry'
      *        will be used.
      * @param array $extraHeaders Extra headers to add to the request, as an

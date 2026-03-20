@@ -171,7 +171,7 @@ class Zend_Controller_Router_Route extends Zend_Controller_Router_Route_Abstract
      * @param mixed|null     $locale
      */
     public function __construct(
-        $route, $defaults = [], $reqs = [], Zend_Translate $translator = null, $locale = null
+        $route, $defaults = [], $reqs = [], ?Zend_Translate $translator = null, $locale = null
     )
     {
         $route               = trim($route, $this->_urlDelimiter);
@@ -272,11 +272,12 @@ class Zend_Controller_Router_Route extends Zend_Controller_Router_Route_Abstract
                 // Translate value if required
                 $part = $this->_parts[$pos];
                 if ($this->_isTranslated
+                    && $part !== null
                     && (substr($part, 0, 1) === '@' && substr($part, 1, 1) !== '@'
                         && $name === null)
                     || $name !== null && in_array($name, $this->_translatable)
                 ) {
-                    if (substr($part, 0, 1) === '@') {
+                    if ($part !== null && substr($part, 0, 1) === '@') {
                         $part = substr($part, 1);
                     }
 
@@ -487,7 +488,7 @@ class Zend_Controller_Router_Route extends Zend_Controller_Router_Route_Abstract
      * @param  Zend_Translate $translator
      * @return void
      */
-    public static function setDefaultTranslator(Zend_Translate $translator = null)
+    public static function setDefaultTranslator(?Zend_Translate $translator = null)
     {
         self::$_defaultTranslator = $translator;
     }

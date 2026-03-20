@@ -42,12 +42,12 @@ class Zend_Test_PHPUnit_Constraint_DomQuery37 extends Constraint
     /**#@+
      * Assertion type constants
      */
-    const ASSERT_QUERY            = 'assertQuery';
-    const ASSERT_CONTENT_CONTAINS = 'assertQueryContentContains';
-    const ASSERT_CONTENT_REGEX    = 'assertQueryContentRegex';
-    const ASSERT_CONTENT_COUNT    = 'assertQueryCount';
-    const ASSERT_CONTENT_COUNT_MIN= 'assertQueryCountMin';
-    const ASSERT_CONTENT_COUNT_MAX= 'assertQueryCountMax';
+    public const ASSERT_QUERY            = 'assertQuery';
+    public const ASSERT_CONTENT_CONTAINS = 'assertQueryContentContains';
+    public const ASSERT_CONTENT_REGEX    = 'assertQueryContentRegex';
+    public const ASSERT_CONTENT_COUNT    = 'assertQueryCount';
+    public const ASSERT_CONTENT_COUNT_MIN= 'assertQueryCountMin';
+    public const ASSERT_CONTENT_COUNT_MAX= 'assertQueryCountMax';
     /**#@-*/
 
     /**
@@ -136,9 +136,9 @@ class Zend_Test_PHPUnit_Constraint_DomQuery37 extends Constraint
     /**
      * Evaluate an object to see if it fits the constraints
      *
-     * @param  string       Response content to be matched against (haystack)
-     * @param  null|string  Assertion type
-     * @param  string       (optional) String to match (needle), may be required depending on assertion type
+     * @param  string $content Response content to be matched against (haystack)
+     * @param  null|string $assertType Assertion type
+     * @param  string $match (optional) String to match (needle), may be required depending on assertion type
      * @return bool
      *
      * NOTE:
@@ -214,9 +214,9 @@ class Zend_Test_PHPUnit_Constraint_DomQuery37 extends Constraint
      * Report Failure
      *
      * @see    PHPUnit_Framework_Constraint for implementation details
-     * @param  mixed    CSS selector path
-     * @param  string   Failure description
-     * @param  object   Cannot be used, null
+     * @param  mixed $other CSS selector path
+     * @param  string $description Failure description
+     * @param  object $cannot_be_used Cannot be used, null
      * @return void
      * @throws ExpectationFailedException
      * NOTE:
@@ -226,7 +226,7 @@ class Zend_Test_PHPUnit_Constraint_DomQuery37 extends Constraint
      *     protected function fail($other, $description, PHPUnit_Framework_ComparisonFailure $comparisonFailure = NULL)
      * We use the new interface for PHP-strict checking
      */
-    public function fail($other, $description, ComparisonFailure $cannot_be_used = NULL)
+    public function fail($other, $description, ?ComparisonFailure $cannot_be_used = NULL)
     {
         require_once 'Zend/Test/PHPUnit/Constraint/Exception.php';
         switch ($this->_assertType) {

@@ -47,11 +47,31 @@ require_once 'Zend/Form/Decorator/Abstract.php';
 class Zend_Form_Decorator_Label extends Zend_Form_Decorator_Abstract
 {
     /**
+     * @var string
+     */
+    protected $optionalPrefix;
+
+    /**
+     * @var string
+     */
+    protected $optionalSuffix;
+
+    /**
+     * @var string
+     */
+    protected $requiredPrefix;
+
+    /**
+     * @var string
+     */
+    protected $requiredSuffix;
+
+    /**
      * Placement constants
      */
-    const IMPLICIT         = 'IMPLICIT';
-    const IMPLICIT_PREPEND = 'IMPLICIT_PREPEND';
-    const IMPLICIT_APPEND  = 'IMPLICIT_APPEND';
+    public const IMPLICIT         = 'IMPLICIT';
+    public const IMPLICIT_PREPEND = 'IMPLICIT_PREPEND';
+    public const IMPLICIT_APPEND  = 'IMPLICIT_APPEND';
 
     /**
      * Default placement: prepend

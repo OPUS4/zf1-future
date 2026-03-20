@@ -45,8 +45,8 @@ class Zend_Json
      * so that it is a boolean true value, allowing it to be used with
      * ext/json's functions.
      */
-    const TYPE_ARRAY  = 1;
-    const TYPE_OBJECT = 0;
+    public const TYPE_ARRAY  = 1;
+    public const TYPE_OBJECT = 0;
 
      /**
       * To check the allowed nesting depth of the XML tree during xml2json conversion.
@@ -194,7 +194,7 @@ class Zend_Json
      * @param null $currentKey
      *
      * @return array|object|string|Zend_Json_Expr
-     *@internal param mixed $valueToCheck
+     * @internal param mixed $valueToCheck
      * @see encode
      */
     protected static function _recursiveJsonExprFinder(&$value, array &$javascriptExpressions, $currentKey = null)

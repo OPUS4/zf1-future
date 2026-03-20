@@ -37,7 +37,7 @@ class Zend_Validate_File_Exists extends Zend_Validate_Abstract
     /**
      * @const string Error constants
      */
-    const DOES_NOT_EXIST = 'fileExistsDoesNotExist';
+    public const DOES_NOT_EXIST = 'fileExistsDoesNotExist';
 
     /**
      * @var array Error message templates
@@ -100,7 +100,7 @@ class Zend_Validate_File_Exists extends Zend_Validate_Abstract
      * Sets the file directory which will be checked
      *
      * @param  string|array $directory The directories to validate
-     * @return Zend_Validate_File_Exists Provides a fluent interface
+     * @return $this
      */
     public function setDirectory($directory)
     {
@@ -113,7 +113,7 @@ class Zend_Validate_File_Exists extends Zend_Validate_Abstract
      * Adds the file directory which will be checked
      *
      * @param  string|array $directory The directory to add for validation
-     * @return Zend_Validate_File_Exists Provides a fluent interface
+     * @return $this
      * @throws Zend_Validate_Exception
      */
     public function addDirectory($directory)

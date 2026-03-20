@@ -30,6 +30,12 @@
 class Zend_Form_DisplayGroup implements Iterator,Countable
 {
     /**
+     * Element Id
+     * @var string
+     */
+    protected $id;
+
+    /**
      * Group attributes
      * @var array
      */
@@ -97,7 +103,7 @@ class Zend_Form_DisplayGroup implements Iterator,Countable
     protected $_order;
 
     /**
-     * @var Zend_Translate
+     * @var Zend_Translate_Adapter
      */
     protected $_translator;
 
@@ -882,7 +888,7 @@ class Zend_Form_DisplayGroup implements Iterator,Countable
      * @param  Zend_View_Interface $view
      * @return Zend_Form_DisplayGroup
      */
-    public function setView(Zend_View_Interface $view = null)
+    public function setView(?Zend_View_Interface $view = null)
     {
         $this->_view = $view;
         return $this;
@@ -909,7 +915,7 @@ class Zend_Form_DisplayGroup implements Iterator,Countable
      *
      * @return string
      */
-    public function render(Zend_View_Interface $view = null)
+    public function render(?Zend_View_Interface $view = null)
     {
         if (null !== $view) {
             $this->setView($view);
@@ -959,7 +965,7 @@ class Zend_Form_DisplayGroup implements Iterator,Countable
     /**
      * Retrieve translator object
      *
-     * @return Zend_Translate|null
+     * @return Zend_Translate_Adapter|null
      */
     public function getTranslator()
     {

@@ -38,10 +38,10 @@ class Zend_Test_PHPUnit_Constraint_ResponseHeader34 extends Constraint
     /**#@+
      * Assertion type constants
      */
-    const ASSERT_RESPONSE_CODE   = 'assertResponseCode';
-    const ASSERT_HEADER          = 'assertHeader';
-    const ASSERT_HEADER_CONTAINS = 'assertHeaderContains';
-    const ASSERT_HEADER_REGEX    = 'assertHeaderRegex';
+    public const ASSERT_RESPONSE_CODE   = 'assertResponseCode';
+    public const ASSERT_HEADER          = 'assertHeader';
+    public const ASSERT_HEADER_CONTAINS = 'assertHeaderContains';
+    public const ASSERT_HEADER_REGEX    = 'assertHeaderRegex';
     /**#@-*/
 
     /**
@@ -111,7 +111,7 @@ class Zend_Test_PHPUnit_Constraint_ResponseHeader34 extends Constraint
      * Evaluate an object to see if it fits the constraints
      *
      * @param  Zend_Controller_Response_Abstract $other String to examine
-     * @param  null|string Assertion type
+     * @param  null|string $assertType Assertion type
      * @return bool
      */
     public function evaluate($other, $assertType = null)

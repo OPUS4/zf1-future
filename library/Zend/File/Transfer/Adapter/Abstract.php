@@ -32,8 +32,8 @@ abstract class Zend_File_Transfer_Adapter_Abstract
     /**@+
      * Plugin loader Constants
      */
-    const FILTER    = 'FILTER';
-    const VALIDATE  = 'VALIDATE';
+    public const FILTER    = 'FILTER';
+    public const VALIDATE  = 'VALIDATE';
     /**@-*/
 
     /**
@@ -65,7 +65,7 @@ abstract class Zend_File_Transfer_Adapter_Abstract
     protected $_messages = [];
 
     /**
-     * @var Zend_Translate
+     * @var Zend_Translate_Adapter
      */
     protected $_translator;
 
@@ -255,7 +255,7 @@ abstract class Zend_File_Transfer_Adapter_Abstract
      */
     public function addPrefixPath($prefix, $path, $type = null)
     {
-        $type = strtoupper($type);
+        $type = strtoupper((string) $type);
         switch ($type) {
             case self::FILTER:
             case self::VALIDATE:
@@ -324,10 +324,10 @@ abstract class Zend_File_Transfer_Adapter_Abstract
     /**
      * Adds a new validator for this class
      *
-     * @param  string|array $validator           Type of validator to add
-     * @param  boolean      $breakChainOnFailure If the validation chain should stop an failure
-     * @param  string|array $options             Options to set for the validator
-     * @param  string|array $files               Files to limit this validator to
+     * @param  string|Zend_Validate_Interface $validator           Type of validator to add
+     * @param  boolean                        $breakChainOnFailure If the validation chain should stop an failure
+     * @param  string|array                   $options             Options to set for the validator
+     * @param  string|array                   $files               Files to limit this validator to
      * @return Zend_File_Transfer_Adapter_Abstract
      */
     public function addValidator($validator, $breakChainOnFailure = false, $options = null, $files = null)
@@ -575,7 +575,7 @@ abstract class Zend_File_Transfer_Adapter_Abstract
                         case 'ignoreNoFile' :
                         case 'useByteString' :
                         case 'detectInfos' :
-                            $this->_files[$key]['options'][$name] = (boolean) $value;
+                            $this->_files[$key]['options'][$name] = (bool) $value;
                             break;
 
                         default:
@@ -1025,7 +1025,7 @@ abstract class Zend_File_Transfer_Adapter_Abstract
      * @param  string|array $files       Files to set the new destination for
      * @return Zend_File_Transfer_Adapter_Abstract
      * @throws Zend_File_Transfer_Exception when the given destination is not a directory or does not exist
-     *@deprecated Will be changed to be a filter!!!
+     * @deprecated Will be changed to be a filter!!!
      */
     public function setDestination($destination, $files = null)
     {
@@ -1106,7 +1106,7 @@ abstract class Zend_File_Transfer_Adapter_Abstract
     /**
      * Set translator object for localization
      *
-     * @param  Zend_Translate|null $translator
+     * @param  Zend_Translate|Zend_Translate_Adapter|null $translator
      * @return Zend_File_Transfer_Adapter_Abstract
      * @throws Zend_File_Transfer_Exception
      */
@@ -1129,7 +1129,7 @@ abstract class Zend_File_Transfer_Adapter_Abstract
     /**
      * Retrieve localization translator object
      *
-     * @return Zend_Translate|null
+     * @return Zend_Translate_Adapter|null
      */
     public function getTranslator()
     {

@@ -28,12 +28,17 @@ require_once 'Zend/Cloud/Infrastructure/Adapter/AbstractAdapter.php';
 class Zend_Cloud_Infrastructure_Adapter_Ec2 extends Zend_Cloud_Infrastructure_Adapter_AbstractAdapter
 {
     /**
+     * @var bool
+     */
+    protected $error;
+
+    /**
      * AWS constants
      */
-    const AWS_ACCESS_KEY     = 'aws_accesskey';
-    const AWS_SECRET_KEY     = 'aws_secretkey';
-    const AWS_REGION         = 'aws_region';
-    const AWS_SECURITY_GROUP = 'securityGroup';
+    public const AWS_ACCESS_KEY     = 'aws_accesskey';
+    public const AWS_SECRET_KEY     = 'aws_secretkey';
+    public const AWS_REGION         = 'aws_region';
+    public const AWS_SECURITY_GROUP = 'securityGroup';
 
     /**
      * Ec2 Instance
@@ -231,7 +236,7 @@ class Zend_Cloud_Infrastructure_Adapter_Ec2 extends Zend_Cloud_Infrastructure_Ad
     /**
      * Return the status of an instance
      *
-     * @param  string
+     * @param  string $id
      * @return string|boolean
      */
     public function statusInstance($id)

@@ -40,10 +40,16 @@ require_once 'Zend/View/Helper/Placeholder/Container.php';
 class Zend_View_Helper_Placeholder_Registry
 {
     /**
+     * View object
+     * @var Zend_View_Interface|null
+     */
+    public $view = null;
+
+    /**
      * Zend_Registry key under which placeholder registry exists
      * @const string
      */
-    const REGISTRY_KEY = 'Zend_View_Helper_Placeholder_Registry';
+    public const REGISTRY_KEY = 'Zend_View_Helper_Placeholder_Registry';
 
     /**
      * Default container class

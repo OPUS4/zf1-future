@@ -31,22 +31,28 @@
 abstract class Zend_View_Helper_Placeholder_Container_Abstract extends ArrayObject
 {
     /**
+     * View object
+     * @var Zend_View_Interface|null
+     */
+    public $view = null;
+
+    /**
      * Whether or not to override all contents of placeholder
      * @const string
      */
-    const SET    = 'SET';
+    public const SET    = 'SET';
 
     /**
      * Whether or not to append contents to placeholder
      * @const string
      */
-    const APPEND = 'APPEND';
+    public const APPEND = 'APPEND';
 
     /**
      * Whether or not to prepend contents to placeholder
      * @const string
      */
-    const PREPEND = 'PREPEND';
+    public const PREPEND = 'PREPEND';
 
     /**
      * What text to prefix the placeholder with when rendering

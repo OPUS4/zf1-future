@@ -38,10 +38,10 @@ class Zend_Test_PHPUnit_Constraint_ResponseHeader41 extends Constraint
     /**#@+
      * Assertion type constants
      */
-    const ASSERT_RESPONSE_CODE   = 'assertResponseCode';
-    const ASSERT_HEADER          = 'assertHeader';
-    const ASSERT_HEADER_CONTAINS = 'assertHeaderContains';
-    const ASSERT_HEADER_REGEX    = 'assertHeaderRegex';
+    public const ASSERT_RESPONSE_CODE   = 'assertResponseCode';
+    public const ASSERT_HEADER          = 'assertHeader';
+    public const ASSERT_HEADER_CONTAINS = 'assertHeaderContains';
+    public const ASSERT_HEADER_REGEX    = 'assertHeaderRegex';
     /**#@-*/
 
     /**
@@ -110,10 +110,10 @@ class Zend_Test_PHPUnit_Constraint_ResponseHeader41 extends Constraint
     /**
      * Evaluate an object to see if it fits the constraints
      *
-     * @param  object       of Zend_Controller_Response_Abstract to be evaluated
-     * @param  null|string  Assertion type
-     * @param  int|string   HTTP response code to evaluate against | header string (haystack)
-     * @param  string       (optional) match (needle), may be required depending on assertion type
+     * @param  object $response of Zend_Controller_Response_Abstract to be evaluated
+     * @param  null|string $assertType Assertion type
+     * @param  int|string $variable HTTP response code to evaluate against | header string (haystack)
+     * @param  string (optional) match (needle), may be required depending on assertion type
      * @return bool
      * NOTE:
      * Drastic changes up to PHPUnit 3.5.15 this was:
@@ -193,9 +193,9 @@ class Zend_Test_PHPUnit_Constraint_ResponseHeader41 extends Constraint
      * Report Failure
      *
      * @see    PHPUnit_Framework_Constraint for implementation details
-     * @param  mixed    CSS selector path
-     * @param  string   Failure description
-     * @param  object   Cannot be used, null
+     * @param  mixed $other CSS selector path
+     * @param  string $description Failure description
+     * @param  object $cannot_be_used Cannot be used, null
      * @return void
      * @throws ExpectationFailedException
      * NOTE:

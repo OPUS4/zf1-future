@@ -204,7 +204,7 @@ abstract class Zend_Db_Table_Row_Abstract implements ArrayAccess, IteratorAggreg
      * Unset row field value
      *
      * @param  string $columnName The column key.
-     * @return Zend_Db_Table_Row_Abstract
+     * @return $this
      * @throws Zend_Db_Table_Row_Exception
      */
     public function __unset($columnName)
@@ -334,7 +334,7 @@ abstract class Zend_Db_Table_Row_Abstract implements ArrayAccess, IteratorAggreg
      * @return boolean
      * @throws Zend_Db_Table_Row_Exception
      */
-    public function setTable(Zend_Db_Table_Abstract $table = null)
+    public function setTable(?Zend_Db_Table_Abstract $table = null)
     {
         if ($table == null) {
             $this->_table = null;
@@ -664,7 +664,7 @@ abstract class Zend_Db_Table_Row_Abstract implements ArrayAccess, IteratorAggreg
      * Sets all data in the row from an array.
      *
      * @param  array $data
-     * @return Zend_Db_Table_Row_Abstract Provides a fluent interface
+     * @return $this
      */
     public function setFromArray(array $data)
     {
@@ -873,12 +873,12 @@ abstract class Zend_Db_Table_Row_Abstract implements ArrayAccess, IteratorAggreg
      * Query a dependent table to retrieve rows matching the current row.
      *
      * @param string|Zend_Db_Table_Abstract  $dependentTable
-     * @param string                         OPTIONAL $ruleKey
-     * @param Zend_Db_Table_Select           OPTIONAL $select
+     * @param string $ruleKey                OPTIONAL
+     * @param Zend_Db_Table_Select $select   OPTIONAL
      * @return Zend_Db_Table_Rowset_Abstract Query result from $dependentTable
      * @throws Zend_Db_Table_Row_Exception If $dependentTable is not a table or is not loadable.
      */
-    public function findDependentRowset($dependentTable, $ruleKey = null, Zend_Db_Table_Select $select = null)
+    public function findDependentRowset($dependentTable, $ruleKey = null, ?Zend_Db_Table_Select $select = null)
     {
         $db = $this->_getTable()->getAdapter();
 
@@ -929,12 +929,12 @@ abstract class Zend_Db_Table_Row_Abstract implements ArrayAccess, IteratorAggreg
      * Query a parent table to retrieve the single row matching the current row.
      *
      * @param string|Zend_Db_Table_Abstract $parentTable
-     * @param string                        OPTIONAL $ruleKey
-     * @param Zend_Db_Table_Select          OPTIONAL $select
+     * @param string $ruleKey               OPTIONAL
+     * @param Zend_Db_Table_Select $select  OPTIONAL
      * @return Zend_Db_Table_Row_Abstract   Query result from $parentTable
      * @throws Zend_Db_Table_Row_Exception If $parentTable is not a table or is not loadable.
      */
-    public function findParentRow($parentTable, $ruleKey = null, Zend_Db_Table_Select $select = null)
+    public function findParentRow($parentTable, $ruleKey = null, ?Zend_Db_Table_Select $select = null)
     {
         $db = $this->_getTable()->getAdapter();
 
@@ -995,14 +995,14 @@ abstract class Zend_Db_Table_Row_Abstract implements ArrayAccess, IteratorAggreg
     /**
      * @param  string|Zend_Db_Table_Abstract  $matchTable
      * @param  string|Zend_Db_Table_Abstract  $intersectionTable
-     * @param  string                         OPTIONAL $callerRefRule
-     * @param  string                         OPTIONAL $matchRefRule
-     * @param  Zend_Db_Table_Select           OPTIONAL $select
+     * @param  string $callerRefRule          OPTIONAL
+     * @param  string $matchRefRule           OPTIONAL
+     * @param  Zend_Db_Table_Select $select   OPTIONAL
      * @return Zend_Db_Table_Rowset_Abstract Query result from $matchTable
      * @throws Zend_Db_Table_Row_Exception If $matchTable or $intersectionTable is not a table class or is not loadable.
      */
     public function findManyToManyRowset($matchTable, $intersectionTable, $callerRefRule = null,
-                                         $matchRefRule = null, Zend_Db_Table_Select $select = null)
+                                         $matchRefRule = null, ?Zend_Db_Table_Select $select = null)
     {
         $db = $this->_getTable()->getAdapter();
 

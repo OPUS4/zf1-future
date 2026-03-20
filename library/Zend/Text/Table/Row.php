@@ -50,7 +50,7 @@ class Zend_Text_Table_Row
      * @param  array  $options
      * @return Zend_Text_Table_Row
      */
-    public function createColumn($content, array $options = null)
+    public function createColumn($content, ?array $options = null)
     {
         $align    = null;
         $colSpan  = null;
@@ -113,7 +113,7 @@ class Zend_Text_Table_Row
      * Get the widths of all columns, which were rendered last
      *
      * @return array|null
-     *@throws Zend_Text_Table_Exception When no columns were rendered yet
+     * @throws Zend_Text_Table_Exception When no columns were rendered yet
      */
     public function getColumnWidths()
     {
