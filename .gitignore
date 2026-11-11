@@ -26,4 +26,5 @@ bin/parallel-lint
 phpcs.xml
 .phpstan.cache/*
 .idea
+zf1-future.iml
 .vscode
