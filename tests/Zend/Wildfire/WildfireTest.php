@@ -59,6 +59,9 @@ require_once 'Zend/Json.php';
 /** Zend_Json_Encoder */
 require_once 'Zend/Json/Encoder.php';
 
+/** resources_ErrorCapture */
+require_once 'resources/ErrorCapture.php';
+
 /**
  * @category   Zend
  * @package    Zend_Wildfire
@@ -166,6 +169,19 @@ class Zend_Wildfire_WildfireTest extends TestCase
         $this->_request->setUserAgentExtensionEnabled(true, 'X-FirePHP-Version');
 
         $this->assertTrue($channel->isReady(true));
+    }
+
+    public function testIsReadyWithoutUserAgentHeader()
+    {
+        $channel = Zend_Wildfire_Channel_HttpHeaders::getInstance();
+        $channel->setRequest(new Zend_Controller_Request_HttpTestCase());
+        $channel->setResponse(new Zend_Controller_Response_HttpTestCase());
+
+        $ready = null;
+        resources_ErrorCapture::assertTriggersNothing(function () use ($channel, &$ready) {
+            $ready = $channel->isReady(true);
+        }, E_DEPRECATED);
+        $this->assertFalse($ready);
     }
 
     public function testIsReady2()
@@ -930,6 +946,31 @@ class Zend_Wildfire_WildfireTest extends TestCase
     /**
      * @group ZF-5540
      */
+    public function testObjectFilterOfUndeclaredMembers()
+    {
+        $this->_setupWithoutFrontController();
+
+        $firephp = Zend_Wildfire_Plugin_FirePhp::getInstance();
+        $channel = Zend_Wildfire_Channel_HttpHeaders::getInstance();
+        $protocol = $channel->getProtocol(Zend_Wildfire_Plugin_FirePhp::PROTOCOL_URI);
+
+        $obj = new stdClass();
+        $obj->name = 'Name';
+        $obj->secret = 'Secret';
+
+        $firephp->setObjectFilter('stdClass', ['secret']);
+        $firephp->send($obj);
+
+        $messages = $protocol->getMessages();
+
+        $this->assertEquals(
+            '[{"Type":"LOG"},{"__className":"stdClass","undeclared:name":"Name","undeclared:secret":"** Excluded by Filter **"}]',
+            $messages[Zend_Wildfire_Plugin_FirePhp::STRUCTURE_URI_FIREBUGCONSOLE]
+                     [Zend_Wildfire_Plugin_FirePhp::PLUGIN_URI]
+                     [0]
+        );
+    }
+
     public function testObjectFilter()
     {
         $this->_setupWithoutFrontController();
@@ -952,17 +993,10 @@ class Zend_Wildfire_WildfireTest extends TestCase
                             [Zend_Wildfire_Plugin_FirePhp::PLUGIN_URI]
                             [0];
 
-        if (version_compare(phpversion(), '5.3', '<')) {
-            $this->assertEquals(
-                $message,
-                '[{"Type":"LOG"},{"__className":"Zend_Wildfire_WildfireTest_TestObject1","public:name":"Name","public:value":"Value","protected:static:protectedStatic":"** Need PHP 5.3 to get value **"}]'
-            );
-        } elseif (version_compare(phpversion(), '5.3', '>=')) {
-            $this->assertEquals(
-                $message,
-                '[{"Type":"LOG"},{"__className":"Zend_Wildfire_WildfireTest_TestObject1","public:name":"Name","public:value":"Value","protected:static:protectedStatic":"ProtectedStatic"}]'
-            );
-        }
+        $this->assertEquals(
+            $message,
+            '[{"Type":"LOG"},{"__className":"Zend_Wildfire_WildfireTest_TestObject1","public:name":"Name","public:value":"Value","protected:static:protectedStatic":"ProtectedStatic"}]'
+        );
 
         $message = $messages[Zend_Wildfire_Plugin_FirePhp::STRUCTURE_URI_FIREBUGCONSOLE]
                             [Zend_Wildfire_Plugin_FirePhp::PLUGIN_URI]
@@ -992,17 +1026,10 @@ class Zend_Wildfire_WildfireTest extends TestCase
                             [Zend_Wildfire_Plugin_FirePhp::PLUGIN_URI]
                             [0];
 
-        if (version_compare(phpversion(), '5.3', '<')) {
-            $this->assertEquals(
-                $message,
-                '[{"Type":"LOG"},{"__className":"Zend_Wildfire_WildfireTest_TestObject2","public:public":"Public","private:private":"Private","protected:protected":"Protected","public:static:static":"Static","private:static:staticPrivate":"** Need PHP 5.3 to get value **","protected:static:staticProtected":"** Need PHP 5.3 to get value **"}]'
-            );
-        } elseif (version_compare(phpversion(), '5.3', '>=')) {
-            $this->assertEquals(
-                $message,
-                '[{"Type":"LOG"},{"__className":"Zend_Wildfire_WildfireTest_TestObject2","public:public":"Public","private:private":"Private","protected:protected":"Protected","public:static:static":"Static","private:static:staticPrivate":"StaticPrivate","protected:static:staticProtected":"StaticProtected"}]'
-            );
-        }
+        $this->assertEquals(
+            $message,
+            '[{"Type":"LOG"},{"__className":"Zend_Wildfire_WildfireTest_TestObject2","public:public":"Public","private:private":"Private","protected:protected":"Protected","public:static:static":"Static","private:static:staticPrivate":"StaticPrivate","protected:static:staticProtected":"StaticProtected"}]'
+        );
     }
 
     /**
@@ -1140,12 +1167,14 @@ class Zend_Wildfire_WildfireTest_TestObject2
     protected static $staticProtected = 'StaticProtected';
 }
 
+#[AllowDynamicProperties]
 class Zend_Wildfire_WildfireTest_TestObject3
 {
     public $name = 'Name';
     public $value = 'Value';
 }
 
+#[AllowDynamicProperties]
 class Zend_Wildfire_WildfireTest_JsonEncodingTestClass
 {
 }

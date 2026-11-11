@@ -62,6 +62,7 @@ class Zend_Validate_HostnameTest extends TestCase
                     ? iconv_get_encoding('internal_encoding')
                     : ini_get('default_charset');
         $this->_validator = new Zend_Validate_Hostname();
+        Zend_Validate_HostnameTest_DnsStub::resetCache();
     }
 
     /**
@@ -537,6 +538,95 @@ class Zend_Validate_HostnameTest extends TestCase
     }
 
     /**
+     * TLDs delegated after the previous update of the list
+     */
+    public function testRecentTlds()
+    {
+        $validator = new Zend_Validate_Hostname(['tldDns' => false]);
+        $this->assertTrue($validator->isValid('example.music'));
+        $this->assertTrue($validator->isValid('example.kids'));
+        $this->assertTrue($validator->isValid('example.spa'));
+        $this->assertTrue($validator->isValid('example.xn--mgbca7dzdo'));
+        $this->assertTrue($validator->isValid('example.ابوظبي'));
+    }
+
+    /**
+     * TLDs that IANA has retired are no longer accepted
+     */
+    public function testRetiredTlds()
+    {
+        $validator = new Zend_Validate_Hostname(['tldDns' => false]);
+        $this->assertFalse($validator->isValid('example.abarth'));
+        $this->assertFalse($validator->isValid('example.xfinity'));
+        $this->assertFalse($validator->isValid('example.測試'));
+        $this->assertArrayHasKey(Zend_Validate_Hostname::UNKNOWN_TLD, $validator->getMessages());
+    }
+
+    public function testTldDnsOptionIsEnabledByDefault()
+    {
+        $this->assertTrue($this->_validator->getValidateTldDns());
+        $this->assertFalse($this->_validator->setValidateTldDns(false)->getValidateTldDns());
+
+        $validator = new Zend_Validate_Hostname(['tldDns' => false]);
+        $this->assertFalse($validator->getValidateTldDns());
+    }
+
+    public function testUnknownTldIsLookedUpInDns()
+    {
+        $validator = new Zend_Validate_HostnameTest_DnsStub();
+        $validator->delegated = ['newtld'];
+
+        $this->assertTrue($validator->isValid('example.newtld'));
+        $this->assertTrue($validator->isValid('example.NewTLD'));
+        $this->assertFalse($validator->isValid('example.othertld'));
+        $this->assertArrayHasKey(Zend_Validate_Hostname::UNKNOWN_TLD, $validator->getMessages());
+        $this->assertSame(['newtld.', 'othertld.'], $validator->lookups);
+    }
+
+    public function testKnownTldIsNotLookedUpInDns()
+    {
+        $validator = new Zend_Validate_HostnameTest_DnsStub();
+
+        $this->assertTrue($validator->isValid('example.com'));
+        $this->assertTrue($validator->isValid('example.рф'));
+        $this->assertSame([], $validator->lookups);
+    }
+
+    public function testDisabledTldDnsRejectsUnknownTldWithoutLookup()
+    {
+        $validator = new Zend_Validate_HostnameTest_DnsStub();
+        $validator->delegated = ['newtld'];
+        $validator->setValidateTldDns(false);
+
+        $this->assertFalse($validator->isValid('example.newtld'));
+        $this->assertSame([], $validator->lookups);
+    }
+
+    public function testDnsLookupOfIdnTldUsesPunycode()
+    {
+        if (!function_exists('idn_to_ascii')) {
+            $this->markTestSkipped('idn_to_ascii() needs the intl extension');
+        }
+
+        $validator = new Zend_Validate_HostnameTest_DnsStub();
+        $validator->delegated = ['xn--80akhbyknj4f'];
+
+        $this->assertTrue($validator->isValid('example.испытание'));
+        $this->assertSame(['xn--80akhbyknj4f.'], $validator->lookups);
+    }
+
+    public function testDnsLookupResultIsCached()
+    {
+        $validator = new Zend_Validate_HostnameTest_DnsStub();
+        $validator->delegated = ['newtld'];
+        $validator->isValid('example.newtld');
+
+        $other = new Zend_Validate_HostnameTest_DnsStub();
+        $this->assertTrue($other->isValid('www.newtld'));
+        $this->assertSame([], $other->lookups);
+    }
+
+    /**
      * @group GH-610
      */
     public function testGermanSmallLetterSharpS()
@@ -553,5 +643,89 @@ class Zend_Validate_HostnameTest extends TestCase
         $validator = new Zend_Validate_Hostname();
         $this->assertTrue($validator->isValid('1.pool.ntp.org'));
         $this->assertTrue($validator->isValid('0.pool.ntp.org'));
+    }
+
+    /**
+     * Under an internationalized TLD without a character table, a non-ASCII
+     * label is accepted when it is a valid IDNA label, including the zero
+     * width non-joiner, which is valid in Persian words. TLDs with a table
+     * and ASCII TLDs keep their rules.
+     *
+     * @requires extension intl
+     * @group GH-477
+     */
+    public function testIdnaLabelUnderIdnTldWithoutCharacterTable()
+    {
+        $validator = new Zend_Validate_Hostname();
+        $this->assertTrue($validator->isValid('نمونه.ایران'), implode(', ', $validator->getMessages()));
+        $this->assertTrue($validator->isValid('مثال.موقع'), implode(', ', $validator->getMessages()));
+        $this->assertTrue($validator->isValid("می\u{200C}خواهم.ایران"), implode(', ', $validator->getMessages()));
+        $this->assertTrue($validator->isValid('пример.укр'), implode(', ', $validator->getMessages()));
+
+        // .se has a table and does not allow ã, .uk has no table and no IDN
+        $this->assertFalse($validator->isValid('hãllo.se'));
+        $this->assertFalse($validator->isValid('hãllo.uk'));
+        $this->assertFalse($validator->isValid("می\u{200C}خواهم.ir"));
+    }
+
+    /**
+     * Invisible bidi and zero width characters that IDNA disallows stay invalid.
+     *
+     * @requires extension intl
+     * @group GH-477
+     */
+    public function testIdnaDisallowedInvisibleCharacters()
+    {
+        $validator = new Zend_Validate_Hostname();
+        foreach (["example.com\u{200F}", "\u{200F}example.com", "exam\u{200E}ple.com", "example\u{200F}.com",
+                  "exa\u{200D}mple.com", "exam\u{FEFF}ple.com", "\u{202B}example.com\u{202C}",
+                  "نمونه\u{200F}.ایران", "نمو\u{FEFF}نه.ایران", "نمو\u{00AD}نه.ایران"] as $hostname) {
+            $this->assertFalse($validator->isValid($hostname), json_encode($hostname));
+        }
+    }
+
+    /**
+     * The IDNA check belongs to the idn option.
+     *
+     * @requires extension intl
+     * @group GH-477
+     */
+    public function testIdnaLabelNotAcceptedWithIdnDisabled()
+    {
+        $validator = new Zend_Validate_Hostname();
+        $validator->setValidateIdn(false);
+        $this->assertFalse($validator->isValid('نمونه.ایران'));
+        $this->assertFalse($validator->isValid("می\u{200C}خواهم.ایران"));
+    }
+}
+
+/**
+ * Hostname validator with a fake DNS, so the tests do not depend on the network
+ */
+class Zend_Validate_HostnameTest_DnsStub extends Zend_Validate_Hostname
+{
+    /**
+     * TLDs (ASCII form) the fake DNS knows
+     *
+     * @var array
+     */
+    public $delegated = [];
+
+    /**
+     * Hosts that were looked up
+     *
+     * @var array
+     */
+    public $lookups = [];
+
+    public static function resetCache()
+    {
+        self::$_tldDnsCache = [];
+    }
+
+    protected function _checkDnsRecords($host, $type)
+    {
+        $this->lookups[] = $host;
+        return $type === 'NS' && in_array(rtrim($host, '.'), $this->delegated, true);
     }
 }

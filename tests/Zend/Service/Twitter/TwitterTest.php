@@ -45,6 +45,7 @@ require_once 'Zend/Oauth/Token/Access.php';
 require_once 'Zend/Oauth/Token/Access.php';
 require_once 'Zend/Oauth/Client.php';
 require_once 'Zend/Oauth/Consumer.php';
+require_once 'resources/ErrorCapture.php';
 
 /**
  * @category   Zend
@@ -406,7 +407,10 @@ class Zend_Service_Twitter_TwitterTest extends TestCase
             'statuses.update.json',
             ['status' => 'Test Message 1']
         ));
-        $response = $twitter->statuses->update('Test Message 1');
+        $response = null;
+        resources_ErrorCapture::assertTriggersNothing(function () use ($twitter, &$response) {
+            $response = $twitter->statuses->update('Test Message 1');
+        }, E_DEPRECATED);
         $this->assertTrue($response instanceof Zend_Service_Twitter_Response);
     }
 
@@ -617,6 +621,27 @@ class Zend_Service_Twitter_TwitterTest extends TestCase
         ));
         $response = $twitter->search->tweets('#zf2');
         $this->assertTrue($response instanceof Zend_Service_Twitter_Response);
+    }
+
+    public function testSearchTweetsWithGeocode()
+    {
+        $twitter = new Zend_Service_Twitter();
+        $twitter->setHttpClient($this->stubTwitter(
+            'search/tweets.json',
+            Zend_Http_Client::GET,
+            'search.tweets.json',
+            ['q' => '#zf2', 'geocode' => '37.781157,-122.39872,1mi']
+        ));
+        $response = $twitter->search->tweets('#zf2', ['geocode' => '37.781157,-122.398720, 1mi']);
+        $this->assertTrue($response instanceof Zend_Service_Twitter_Response);
+    }
+
+    public function testSearchTweetsRejectsGeocodeWithoutRadius()
+    {
+        $twitter = new Zend_Service_Twitter();
+        $this->expectException('Zend_Service_Twitter_Exception');
+        $this->expectExceptionMessage('"geocode" must be of the format');
+        $twitter->search->tweets('#zf2', ['geocode' => '37.781157,-122.398720']);
     }
 
     public function testUsersSearch()

@@ -58,7 +58,7 @@ class Zend_Gdata_Gapps_OwnerEntry extends Zend_Gdata_Entry
      * <apps:property> element containing information about other items
      * relevant to this entry.
      *
-     * @var Zend_Gdata_Gapps_Extension_Property
+     * @var Zend_Gdata_Gapps_Extension_Property[]
      */
     protected $_property = [];
 
@@ -105,7 +105,7 @@ class Zend_Gdata_Gapps_OwnerEntry extends Zend_Gdata_Entry
 
         switch ($absoluteNodeName) {
 
-            case $this->lookupNamespace('apps') . ':' . 'property';
+            case $this->lookupNamespace('apps') . ':' . 'property':
                 $property = new Zend_Gdata_Gapps_Extension_Property();
                 $property->transferFromDOM($child);
                 $this->_property[] = $property;

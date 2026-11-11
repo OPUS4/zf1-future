@@ -20,12 +20,10 @@
  * @version    $Id$
  */
 
-
 /**
  * @see Zend_Db_Select_TestCommon
  */
 require_once 'Zend/Db/Select/TestCommon.php';
-
 
 /**
  * @category   Zend
@@ -54,16 +52,6 @@ class Zend_Db_Select_Pdo_PgsqlTest extends Zend_Db_Select_TestCommon
                             ->from('zfproducts')
                             ->where($product_name . ' = ?', "as'as:x");
         return $select;
-    }
-
-    public function testSelectGroupByExpr()
-    {
-        $this->markTestSkipped($this->getDriver() . ' does not support expressions in GROUP BY');
-    }
-
-    public function testSelectGroupByAutoExpr()
-    {
-        $this->markTestSkipped($this->getDriver() . ' does not support expressions in GROUP BY');
     }
 
     /**
@@ -127,83 +115,8 @@ class Zend_Db_Select_Pdo_PgsqlTest extends Zend_Db_Select_TestCommon
         $this->assertEquals(4, count($rowset));
     }
 
-    public function testSqlInjectionWithOrder()
+    public function testSelectFromForUpdate()
     {
-        $select = $this->_db->select();
-        $select->from(['p' => 'products'])->order('MD5(1);select');
-        $this->assertEquals('SELECT "p".* FROM "products" AS "p" ORDER BY "MD5(1);select" ASC', $select->assemble());
-
-        $select = $this->_db->select();
-        $select->from(['p' => 'products'])->order('name;select;MD5(1)');
-        $this->assertEquals('SELECT "p".* FROM "products" AS "p" ORDER BY "name;select;MD5(1)" ASC', $select->assemble());
-    }
-
-    /**
-     * @group ZF-378
-     */
-    public function testOrderOfSingleFieldWithDirection()
-    {
-        $select = $this->_db->select();
-        $select->from(['p' => 'product'])
-            ->order('productId DESC');
-
-        $expected = 'SELECT "p".* FROM "product" AS "p" ORDER BY "productId" DESC';
-        $this->assertEquals(
-            $expected,
-            $select->assemble(),
-            'Order direction of field failed'
-        );
-    }
-
-    /**
-     * @group ZF-378
-     */
-    public function testOrderOfMultiFieldWithDirection()
-    {
-        $select = $this->_db->select();
-        $select->from(['p' => 'product'])
-            ->order(['productId DESC', 'userId ASC']);
-
-        $expected = 'SELECT "p".* FROM "product" AS "p" ORDER BY "productId" DESC, "userId" ASC';
-        $this->assertEquals(
-            $expected,
-            $select->assemble(),
-            'Order direction of field failed'
-        );
-    }
-
-    /**
-     * @group ZF-378
-     */
-    public function testOrderOfMultiFieldButOnlyOneWithDirection()
-    {
-        $select = $this->_db->select();
-        $select->from(['p' => 'product'])
-            ->order(['productId', 'userId DESC']);
-
-        $expected = 'SELECT "p".* FROM "product" AS "p" ORDER BY "productId" ASC, "userId" DESC';
-        $this->assertEquals(
-            $expected,
-            $select->assemble(),
-            'Order direction of field failed'
-        );
-    }
-
-    /**
-     * @group ZF-378
-     * @group ZF-381
-     */
-    public function testOrderOfConditionalFieldWithDirection()
-    {
-        $select = $this->_db->select();
-        $select->from(['p' => 'product'])
-            ->order('IF("productId" > 5,1,0) ASC');
-
-        $expected = 'SELECT "p".* FROM "product" AS "p" ORDER BY IF("productId" > 5,1,0) ASC';
-        $this->assertEquals(
-            $expected,
-            $select->assemble(),
-            'Order direction of field failed'
-        );
+        $this->_testSelectFromForUpdate();
     }
 }

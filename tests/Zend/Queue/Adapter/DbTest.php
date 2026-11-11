@@ -108,12 +108,6 @@ class Zend_Queue_Adapter_DbTest extends Zend_Queue_Adapter_AdapterTest
         ];
     }
 
-    // test the constants
-    public function testConst()
-    {
-        $this->markTestSkipped('no constants to test');
-    }
-
     // additional non-standard tests
 
     public function test_constructor2()
@@ -159,5 +153,10 @@ class Zend_Queue_Adapter_DbTest extends Zend_Queue_Adapter_AdapterTest
 
         $messages = $queue->receive(0);
         $this->assertEquals(0, count($messages));
+    }
+
+    public function testVisibility()
+    {
+        $this->_testVisibility();
     }
 }

@@ -728,7 +728,7 @@ abstract class Zend_Db_Adapter_Abstract
      * @param string|Zend_Db_Select $sql  An SQL SELECT statement.
      * @param mixed                 $bind Data to bind into SELECT placeholders.
      * @param mixed                 $fetchMode Override current fetch mode.
-     * @return array|null
+     * @return array
      */
     public function fetchAll($sql, $bind = [], $fetchMode = null)
     {
@@ -803,7 +803,7 @@ abstract class Zend_Db_Adapter_Abstract
      * Fetches all SQL result rows as an array of key-value pairs.
      *
      * The first column is the key, the second column is the
-     * value.
+     * value. A result with a single column gives null values.
      *
      * @param string|Zend_Db_Select $sql An SQL SELECT statement.
      * @param mixed $bind Data to bind into SELECT placeholders.
@@ -814,7 +814,7 @@ abstract class Zend_Db_Adapter_Abstract
         $stmt = $this->query($sql, $bind);
         $data = [];
         while ($row = $stmt->fetch(Zend_Db::FETCH_NUM)) {
-            $data[$row[0]] = $row[1];
+            $data[$row[0]] = $row[1] ?? null;
         }
         return $data;
     }
@@ -846,7 +846,7 @@ abstract class Zend_Db_Adapter_Abstract
         } elseif (is_float($value)) {
             return sprintf('%F', $value);
         }
-        return "'" . addcslashes($value, "\000\n\r\\'\"\032") . "'";
+        return "'" . addcslashes((string) $value, "\000\n\r\\'\"\032") . "'";
     }
 
     /**
@@ -924,7 +924,7 @@ abstract class Zend_Db_Adapter_Abstract
      *
      * @param string  $text  The text with a placeholder.
      * @param mixed   $value The value to quote.
-     * @param string  $type  OPTIONAL SQL datatype
+     * @param string|int|null  $type  OPTIONAL SQL datatype
      * @param integer $count OPTIONAL count of placeholders to replace
      * @return string An SQL-safe quoted value placed into the original text.
      */
@@ -1064,7 +1064,7 @@ abstract class Zend_Db_Adapter_Abstract
      * (e.g. Oracle, PostgreSQL, DB2).  Other RDBMS brands return null.
      *
      * @param string $sequenceName
-     * @return string
+     * @return string|int|null
      */
     public function lastSequenceId($sequenceName)
     {
@@ -1077,7 +1077,7 @@ abstract class Zend_Db_Adapter_Abstract
      * (e.g. Oracle, PostgreSQL, DB2).  Other RDBMS brands return null.
      *
      * @param string $sequenceName
-     * @return string
+     * @return string|int|null
      */
     public function nextSequenceId($sequenceName)
     {
@@ -1182,7 +1182,7 @@ abstract class Zend_Db_Adapter_Abstract
      * PRIMARY_POSITION => integer; position of column in primary key
      *
      * @param string $tableName
-     * @param string $schemaName OPTIONAL
+     * @param string|array $schemaName OPTIONAL
      * @return array
      */
     abstract public function describeTable($tableName, $schemaName = null);

@@ -1,6 +1,5 @@
 <?php
 
-use PHPUnit\Framework\Error;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 use PHPUnit\Framework\TestSuite;
 use PHPUnit\TextUI\TestRunner;
@@ -159,23 +158,6 @@ class Zend_Log_Writer_DbTest extends TestCase
         require_once 'Zend/Log.php';
         $logger = Zend_Log::factory($cfg['log']);
         $this->assertTrue($logger instanceof Zend_Log);
-    }
-
-    /**
-     * @group ZF-10089
-     */
-    public function testThrowStrictSetFormatter()
-    {
-        if (version_compare(phpversion(), '7', '>=')) {
-            $this->markTestSkipped('Invalid typehinting is PHP Fatal error in PHP7+');
-        }
-
-        try {
-            $this->writer->setFormatter(new StdClass());
-        } catch (Exception $e) {
-            $this->assertTrue($e instanceof Error);
-            $this->assertStringContainsString('must implement interface', $e->getMessage());
-        }
     }
 
     /**

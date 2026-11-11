@@ -32,9 +32,6 @@ if (!defined('PHPUnit_MAIN_METHOD')) {
 /** Zend_Soap_Server */
 require_once 'Zend/Soap/Server.php';
 
-/** Zend_Soap_Client */
-require_once 'Zend/Soap/Client.php';
-
 require_once 'Zend/Config.php';
 
 /**
@@ -63,6 +60,11 @@ class Zend_Soap_ClientTest extends TestCase
         if (!extension_loaded('soap')) {
             $this->markTestSkipped('SOAP Extension is not loaded');
         }
+        if (PHP_VERSION_ID >= 80500) {
+            $this->markTestSkipped('Zend_Soap_Client_Common::__doRequest() lacks the $uriParserClass parameter of SoapClient on PHP 8.5+');
+        }
+
+        require_once 'Zend/Soap/Client.php';
     }
 
     public function testSetOptions()
@@ -557,6 +559,67 @@ class Zend_Soap_ClientTest extends TestCase
         $soap->setSoapClient($clientMock);
 
         $this->assertSame($clientMock, $soap->getSoapClient());
+    }
+
+    /**
+     * @dataProvider doRequestProvider
+     */
+    public function testDoRequestDelegatesToNativeTransport($one_way)
+    {
+        $clientMock = $this->getMockBuilder('Zend_Soap_Client_Common')
+                           ->disableOriginalConstructor()
+                           ->onlyMethods(['doRequest'])
+                           ->getMock();
+        $arguments = ['request', 'http://localhost/', 'urn:test#test', SOAP_1_1];
+        if ($one_way != null) {
+            $arguments[] = $one_way;
+        }
+        $clientMock->expects($this->once())
+                   ->method('doRequest')
+                   ->with(...$arguments)
+                   ->willReturn('response');
+
+        $soap = new Zend_Soap_Client();
+        $this->assertSame('response', $soap->_doRequest(
+            $clientMock, 'request', 'http://localhost/', 'urn:test#test', SOAP_1_1, $one_way
+        ));
+    }
+
+    /**
+     * @dataProvider doRequestProvider
+     */
+    public function testNativeTransportDoesNotReinvokeCallbackOrEmitDeprecation($one_way)
+    {
+        $soap = new Zend_Soap_Client();
+        $callbackCount = 0;
+        $client = new Zend_Soap_Client_Common(
+            function ($client, $request, $location, $action, $version, $oneWay = null) use ($soap, &$callbackCount) {
+                ++$callbackCount;
+                $this->assertSame(1, $callbackCount);
+                return $soap->_doRequest($client, $request, $location, $action, $version, $oneWay);
+            },
+            null,
+            ['uri' => 'urn:test', 'location' => '']
+        );
+
+        set_error_handler(function ($severity, $message, $file, $line) {
+            throw new ErrorException($message, 0, $severity, $file, $line);
+        }, E_DEPRECATED);
+        try {
+            $this->assertNull($client->__doRequest('request', '', 'urn:test#test', SOAP_1_1, $one_way));
+        } finally {
+            restore_error_handler();
+        }
+        $this->assertSame(1, $callbackCount);
+    }
+
+    public static function doRequestProvider()
+    {
+        return [
+            'default' => [null],
+            'two-way' => [0],
+            'one-way' => [1],
+        ];
     }
 }
 

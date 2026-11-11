@@ -429,6 +429,22 @@ class Zend_Session_SaveHandler_DbTableTest extends TestCase
         $this->assertSame($config, unserialize($saveHandler->read($id)));
     }
 
+    public function testReadReturnsStringForNullData()
+    {
+        $config = $this->_saveHandlerTableConfig;
+        unset($config[Zend_Session_SaveHandler_DbTable::PRIMARY_ASSIGNMENT]);
+        $config['primary'] = [$config['primary'][0]];
+        $this->_setupDb($config['primary']);
+        $this->_usedSaveHandlers[] =
+            $saveHandler = new Zend_Session_SaveHandler_DbTable($config);
+
+        $id = '242';
+        $this->assertTrue($saveHandler->write($id, 'foo'));
+        $this->_db->update('Sessions', ['data' => null], ['id = ?' => $id]);
+
+        $this->assertSame('', $saveHandler->read($id));
+    }
+
     public function testReadWriteComplex()
     {
         $config = $this->_saveHandlerTableConfig;
@@ -485,7 +501,7 @@ class Zend_Session_SaveHandler_DbTableTest extends TestCase
 
         sleep(2);
 
-        $this->assertSame(false, unserialize($saveHandler->read($id)));
+        $this->assertSame('', $saveHandler->read($id));
     }
 
     public function testReadWriteThreeTimesAndGc()

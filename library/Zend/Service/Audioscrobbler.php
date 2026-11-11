@@ -71,15 +71,9 @@ class Zend_Service_Audioscrobbler
     {
         $this->set('version', '1.0');
 
-        if (PHP_VERSION_ID < 50600) {
-            iconv_set_encoding('output_encoding', 'UTF-8');
-            iconv_set_encoding('input_encoding', 'UTF-8');
-            iconv_set_encoding('internal_encoding', 'UTF-8');
-        } else {
-            ini_set('output_encoding', 'UTF-8');
-            ini_set('input_encoding', 'UTF-8');
-            ini_set('default_charset', 'UTF-8');
-        }
+        ini_set('output_encoding', 'UTF-8');
+        ini_set('input_encoding', 'UTF-8');
+        ini_set('default_charset', 'UTF-8');
     }
 
     /**
@@ -193,9 +187,13 @@ class Zend_Service_Audioscrobbler
         }
 
         set_error_handler([$this, '_errorHandler']);
-
-        if (!$simpleXmlElementResponse = Zend_Xml_Security::scan($responseBody)) {
+        try {
+            $simpleXmlElementResponse = Zend_Xml_Security::scan($responseBody);
+        } finally {
             restore_error_handler();
+        }
+
+        if (!$simpleXmlElementResponse) {
             /**
              * @see Zend_Service_Exception
              */
@@ -205,8 +203,6 @@ class Zend_Service_Audioscrobbler
             $exception->response = $responseBody;
             throw $exception;
         }
-
-        restore_error_handler();
 
         return $simpleXmlElementResponse;
     }

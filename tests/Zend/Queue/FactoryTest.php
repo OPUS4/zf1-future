@@ -32,7 +32,6 @@ require_once 'Zend/Queue/Exception.php';
 /** Zend_Queue_Adapter_* */
 require_once 'Zend/Queue/Adapter/Array.php';
 require_once 'Zend/Queue/Adapter/Db.php';
-require_once 'Zend/Queue/Adapter/Memcacheq.php';
 require_once 'Zend/Queue/Adapter/ActivemqTest.php';
 
 /**
@@ -67,22 +66,6 @@ class Zend_Queue_FactoryTest extends TestCase
                                                  'port' => $options['port']]]; // optional parameter
 
         $adapter = new Zend_Queue('Db', $config);
-
-        $this->assertTrue($adapter instanceof Zend_Queue);
-    }
-
-    public function testMemcacheq()
-    {
-        if (TESTS_ZEND_QUEUE_MEMCACHEQ_HOST === false ||
-             TESTS_ZEND_QUEUE_MEMCACHEQ_PORT === false) {
-            $this->markTestSkipped('MemcacheQ setup required');
-        }
-
-        $config = ['name' => 'queue1',
-                        'driverOptions' => ['host' => TESTS_ZEND_QUEUE_MEMCACHEQ_HOST,
-                                                 'port' => TESTS_ZEND_QUEUE_MEMCACHEQ_PORT]];
-
-        $adapter = new Zend_Queue('Memcacheq', $config);
 
         $this->assertTrue($adapter instanceof Zend_Queue);
     }

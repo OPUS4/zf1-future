@@ -35,6 +35,11 @@ if (!defined('PHPUnit_MAIN_METHOD')) {
 require_once 'Zend/Validate/EmailAddress.php';
 
 /**
+ * @see Zend_Config
+ */
+require_once 'Zend/Config.php';
+
+/**
  * @category   Zend
  * @package    Zend_Validate
  * @subpackage UnitTests
@@ -519,22 +524,25 @@ class Zend_Validate_EmailAddressTest extends TestCase
      */
     public function testInstanceWithOldOptions()
     {
-        $handler = set_error_handler([$this, 'errorHandler'], E_USER_NOTICE);
-        $validator = new Zend_Validate_EmailAddress();
-        $options = $validator->getOptions();
-
-        $this->assertEquals(Zend_Validate_Hostname::ALLOW_DNS, $options['allow']);
-        $this->assertFalse($options['mx']);
-
+        set_error_handler([$this, 'errorHandler'], E_USER_NOTICE);
         try {
-            $validator = new Zend_Validate_EmailAddress(Zend_Validate_Hostname::ALLOW_ALL, true, new Zend_Validate_Hostname(Zend_Validate_Hostname::ALLOW_ALL));
+            $validator = new Zend_Validate_EmailAddress();
             $options = $validator->getOptions();
 
-            $this->assertEquals(Zend_Validate_Hostname::ALLOW_ALL, $options['allow']);
-            $this->assertTrue($options['mx']);
-            set_error_handler($handler);
-        } catch (Zend_Exception $e) {
-            $this->markTestSkipped('MX not available on this system');
+            $this->assertEquals(Zend_Validate_Hostname::ALLOW_DNS, $options['allow']);
+            $this->assertFalse($options['mx']);
+
+            try {
+                $validator = new Zend_Validate_EmailAddress(Zend_Validate_Hostname::ALLOW_ALL, true, new Zend_Validate_Hostname(Zend_Validate_Hostname::ALLOW_ALL));
+                $options = $validator->getOptions();
+
+                $this->assertEquals(Zend_Validate_Hostname::ALLOW_ALL, $options['allow']);
+                $this->assertTrue($options['mx']);
+            } catch (Zend_Exception $e) {
+                $this->markTestSkipped('MX not available on this system');
+            }
+        } finally {
+            restore_error_handler();
         }
     }
 
@@ -634,18 +642,86 @@ class Zend_Validate_EmailAddressTest extends TestCase
     }
 
     /**
+     * The MX records of an IDN domain are looked up by its ASCII form. кц.рф is
+     * the domain of the .рф registry; a domain with ß would depend on the ICU
+     * version, which maps faß.de to fass.de (before ICU 76) or xn--fa-hia.de.
+     *
      * @group GH-62
      */
     public function testIdnHostnameInEmaillAddress()
     {
-        if (version_compare(PHP_VERSION, '5.3.0', '<')) {
-            $this->markTestSkipped('idn_to_ascii() is available in intl in PHP 5.3.0+');
-        } elseif (!extension_loaded('intl')) {
-            $this->markTestSkipped('idn_to_ascii() is available in intl in PHP 5.3.0+');
+        if (!defined('TESTS_ZEND_VALIDATE_ONLINE_ENABLED')
+            || !constant('TESTS_ZEND_VALIDATE_ONLINE_ENABLED')
+        ) {
+            $this->markTestSkipped('Testing MX records only works when a valid internet connection is available');
+        }
+        if (!extension_loaded('intl')) {
+            $this->markTestSkipped('idn_to_ascii() needs the intl extension');
         }
         $validator = new Zend_Validate_EmailAddress();
         $validator->setValidateMx(true);
-        $this->assertTrue($validator->isValid('testmail@faß.de'));
+        $this->assertTrue($validator->isValid('testmail@кц.рф'), implode("\n", $validator->getMessages()));
+    }
+
+    /**
+     * The local part is ASCII only by default.
+     *
+     * @group GH-477
+     */
+    public function testUtf8LocalPartRejectedByDefault()
+    {
+        $this->assertFalse($this->_validator->getUtf8());
+        $this->assertFalse($this->_validator->isValid('hällo@händler.com'));
+        $this->assertFalse($this->_validator->isValid('مستخدم@example.com'));
+        $this->assertArrayHasKey(Zend_Validate_EmailAddress::INVALID_LOCAL_PART, $this->_validator->getMessages());
+    }
+
+    /**
+     * @group GH-477
+     */
+    public function testUtf8Option()
+    {
+        $validator = new Zend_Validate_EmailAddress(['utf8' => true]);
+        $this->assertTrue($validator->getUtf8());
+
+        $validator = new Zend_Validate_EmailAddress(new Zend_Config(['utf8' => 1]));
+        $this->assertTrue($validator->getUtf8());
+
+        $this->assertSame($this->_validator, $this->_validator->setUtf8());
+        $this->assertTrue($this->_validator->getUtf8());
+        $this->_validator->setUtf8(false);
+        $this->assertFalse($this->_validator->getUtf8());
+    }
+
+    /**
+     * With the utf8 option a non-ASCII local part (SMTPUTF8, RFC 6531) is accepted.
+     *
+     * @group GH-477
+     */
+    public function testUtf8LocalPartAccepted()
+    {
+        $validator = new Zend_Validate_EmailAddress(['utf8' => true]);
+        foreach (['hällo@händler.com', 'hä.llo@example.com', 'مستخدم@example.com', 'пользователь@example.com',
+                  '用户@example.com', 'user@example.com', '"john doe"@example.com'] as $email) {
+            $this->assertTrue($validator->isValid($email), $email . ': ' . implode(', ', $validator->getMessages()));
+        }
+    }
+
+    /**
+     * Invisible characters (bidi marks, zero width joiners, BOM) and invalid
+     * UTF-8 are not accepted in the local part even with the utf8 option.
+     *
+     * @group GH-477
+     */
+    public function testUtf8LocalPartRejectsInvisibleCharacters()
+    {
+        $validator = new Zend_Validate_EmailAddress(['utf8' => true]);
+        foreach (["us\u{200F}er@example.com", "us\u{200E}er@example.com", "us\u{200C}er@example.com",
+                  "\u{202B}user@example.com", "user\u{FEFF}@example.com", "h\xE4llo@example.com",
+                  'hällo.@example.com', '.hällo@example.com'] as $email) {
+            $this->assertFalse($validator->isValid($email), json_encode($email));
+            $this->assertArrayHasKey(Zend_Validate_EmailAddress::INVALID_LOCAL_PART, $validator->getMessages());
+        }
     }
 
     /**

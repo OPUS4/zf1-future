@@ -378,7 +378,10 @@ abstract class Zend_Db_Select_TestCommon extends Zend_Db_TestSetup
      * Test support for FOR UPDATE
      * e.g. from('schema.table').
      */
-    public function testSelectFromForUpdate()
+    /**
+     * FOR UPDATE runs only on the drivers that have it, their tests call this
+     */
+    protected function _testSelectFromForUpdate()
     {
         $select = $this->_db->select()
             ->from("zfproducts")
@@ -1660,6 +1663,48 @@ abstract class Zend_Db_Select_TestCommon extends Zend_Db_TestSetup
     }
 
     /**
+     * A union part with its own ORDER BY or LIMIT is parenthesized
+     */
+    protected function _selectUnionWithOrderedPart()
+    {
+        $select1 = $this->_db->select()
+            ->from('zfbugs', ['bug_id']);
+        $select2 = $this->_db->select()
+            ->from('zfproducts', ['product_id'])
+            ->order('product_id DESC')
+            ->limit(4);
+
+        return $this->_db->select()
+            ->union([$select1, $select2]);
+    }
+
+    public function testSelectUnionWithOrderedPart()
+    {
+        $select = $this->_selectUnionWithOrderedPart();
+        $sql = preg_replace('/\\s+/', ' ', $select->__toString());
+        $this->assertStringStartsWith('SELECT ', $sql);
+        $this->assertMatchesRegularExpression('/ UNION \\(SELECT .* ORDER BY .* DESC.*\\)$/', $sql);
+    }
+
+    /**
+     * @group GH-400
+     */
+    protected function _selectColumnExprWithTrailingSpace()
+    {
+        $expr = new Zend_Db_Expr('COUNT(*) ');
+        return $this->_db->select()
+            ->from(['p' => 'zfproducts'], [$expr . ' as cnt', 'product_id  AS  id']);
+    }
+
+    public function testSelectColumnExprWithTrailingSpace()
+    {
+        $select = $this->_selectColumnExprWithTrailingSpace();
+        $sql = preg_replace('/\\s+/', ' ', $select->__toString());
+        $this->assertStringContainsString('COUNT(*) AS', $sql);
+        $this->assertStringNotContainsString('COUNT(*) "', $sql);
+    }
+
+    /**
      * @group ZF-4772
      */
     public function testSelectUnionNoArrayThrowsException()
@@ -1811,11 +1856,11 @@ abstract class Zend_Db_Select_TestCommon extends Zend_Db_TestSetup
     {
         $select = $this->_db->select();
         $select->from(['p' => 'products'])->order('MD5(1);select');
-        $this->assertEquals('SELECT `p`.* FROM `products` AS `p` ORDER BY `MD5(1);select` ASC', $select->assemble());
+        $this->assertEquals($this->_quoteSql('SELECT `p`.* FROM `products` AS `p` ORDER BY `MD5(1);select` ASC'), $select->assemble());
 
         $select = $this->_db->select();
         $select->from(['p' => 'products'])->order('name;select;MD5(1)');
-        $this->assertEquals('SELECT `p`.* FROM `products` AS `p` ORDER BY `name;select;MD5(1)` ASC', $select->assemble());
+        $this->assertEquals($this->_quoteSql('SELECT `p`.* FROM `products` AS `p` ORDER BY `name;select;MD5(1)` ASC'), $select->assemble());
     }
 
     /**
@@ -1827,7 +1872,7 @@ abstract class Zend_Db_Select_TestCommon extends Zend_Db_TestSetup
         $select->from(['p' => 'product'])
             ->order('productId DESC');
 
-        $expected = 'SELECT `p`.* FROM `product` AS `p` ORDER BY `productId` DESC';
+        $expected = $this->_quoteSql('SELECT `p`.* FROM `product` AS `p` ORDER BY `productId` DESC');
         $this->assertEquals(
             $expected,
             $select->assemble(),
@@ -1844,7 +1889,7 @@ abstract class Zend_Db_Select_TestCommon extends Zend_Db_TestSetup
         $select->from(['p' => 'product'])
             ->order(['productId DESC', 'userId ASC']);
 
-        $expected = 'SELECT `p`.* FROM `product` AS `p` ORDER BY `productId` DESC, `userId` ASC';
+        $expected = $this->_quoteSql('SELECT `p`.* FROM `product` AS `p` ORDER BY `productId` DESC, `userId` ASC');
         $this->assertEquals(
             $expected,
             $select->assemble(),
@@ -1861,7 +1906,7 @@ abstract class Zend_Db_Select_TestCommon extends Zend_Db_TestSetup
         $select->from(['p' => 'product'])
             ->order(['productId', 'userId DESC']);
 
-        $expected = 'SELECT `p`.* FROM `product` AS `p` ORDER BY `productId` ASC, `userId` DESC';
+        $expected = $this->_quoteSql('SELECT `p`.* FROM `product` AS `p` ORDER BY `productId` ASC, `userId` DESC');
         $this->assertEquals(
             $expected,
             $select->assemble(),
@@ -1877,13 +1922,31 @@ abstract class Zend_Db_Select_TestCommon extends Zend_Db_TestSetup
     {
         $select = $this->_db->select();
         $select->from(['p' => 'product'])
-            ->order('IF(`productId` > 5,1,0) ASC');
+            ->order($this->_quoteSql('IF(`productId` > 5,1,0) ASC'));
 
-        $expected = 'SELECT `p`.* FROM `product` AS `p` ORDER BY IF(`productId` > 5,1,0) ASC';
+        $expected = $this->_quoteSql('SELECT `p`.* FROM `product` AS `p` ORDER BY IF(`productId` > 5,1,0) ASC');
         $this->assertEquals(
             $expected,
             $select->assemble(),
             'Order direction of field failed'
         );
+    }
+
+    /**
+     * Writes the backticks and table aliases of the SQL as the adapter does
+     *
+     * @param  string $sql
+     * @return string
+     */
+    protected function _quoteSql($sql)
+    {
+        $q   = $this->_db->getQuoteIdentifierSymbol();
+        $sql = str_replace('`', $q, $sql);
+
+        // some adapters, such as Oracle, write a table alias without AS
+        $tableAs = $this->_db->quoteTableAs('t', 'a');
+        $as      = substr($tableAs, 3, -3);
+
+        return str_replace($q . ' AS ' . $q, $q . $as . $q, $sql);
     }
 }

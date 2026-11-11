@@ -54,7 +54,7 @@ class Zend_Translate_Adapter_XmlTm extends Zend_Translate_Adapter {
      *                            see Zend_Locale for more information
      * @param  string  $filename  XMLTM file to add, full path must be given for access
      * @param  array   $option    OPTIONAL Options to use
-     * @throws Zend_Translation_Exception
+     * @throws Zend_Translate_Exception
      * @return array
      */
     protected function _loadTranslationData($filename, $locale, array $options = [])
@@ -68,10 +68,9 @@ class Zend_Translate_Adapter_XmlTm extends Zend_Translate_Adapter {
 
         $encoding    = $this->_findEncoding($filename);
         $this->_file = xml_parser_create($encoding);
-        xml_set_object($this->_file, $this);
         xml_parser_set_option($this->_file, XML_OPTION_CASE_FOLDING, 0);
-        xml_set_element_handler($this->_file, "_startElement", "_endElement");
-        xml_set_character_data_handler($this->_file, "_contentElement");
+        xml_set_element_handler($this->_file, [$this, '_startElement'], [$this, '_endElement']);
+        xml_set_character_data_handler($this->_file, [$this, '_contentElement']);
 
         try {
             Zend_Xml_Security::scanFile($filename);
@@ -87,7 +86,10 @@ class Zend_Translate_Adapter_XmlTm extends Zend_Translate_Adapter {
                           xml_error_string(xml_get_error_code($this->_file)),
                           xml_get_current_line_number($this->_file),
                           $filename);
-            xml_parser_free($this->_file);
+            if (PHP_VERSION_ID < 80000) {
+                // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.xml_parser_freeDeprecated -- called before PHP 8.0 only
+                xml_parser_free($this->_file);
+            }
             require_once 'Zend/Translate/Exception.php';
             throw new Zend_Translate_Exception($ex);
         }

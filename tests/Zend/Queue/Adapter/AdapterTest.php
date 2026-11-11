@@ -59,9 +59,11 @@ require_once 'Zend/Config.php';
 abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
 {
     /**
-     * @var bool
+     * Message of a PHP error raised while creating the queue, false without an error
+     *
+     * @var string|false
      */
-    protected $error;
+    protected $error = false;
 
     protected function tear_down()
     {
@@ -151,33 +153,23 @@ abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
             $queue = new Zend_Queue($this->getAdapterName(), $config);
         } catch (Zend_Queue_Exception $e) {
             $this->markTestSkipped($e->getMessage());
-            restore_error_handler();
             return false;
+        } finally {
+            restore_error_handler();
         }
 
         // a PHP level error occurred, mark test as failed with error as reason
         // (misconfigured test? undefined constant?)
-        if ($this->error) {
-            $err = error_get_last();
-            $this->markTestFailed($err['message']);
-            restore_error_handler();
-            return false;
+        if ($this->error !== false) {
+            $this->fail($this->error);
         }
-
-        restore_error_handler();
 
         return $queue;
     }
 
     public function handleErrors($errno, $errstr)
     {
-        $this->error = true;
-    }
-
-    // test the constants
-    public function testConst()
-    {
-        $this->markTestSkipped('must be tested in each individual adapter');
+        $this->error = $errstr;
     }
 
     public function testGetOptions()
@@ -272,13 +264,11 @@ abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
         $adapter = $queue->getAdapter();
 
         // check to see if this function is supported
-        if (!($adapter->isSupported('send')
-               && $adapter->isSupported('receive'))) {
-
-            // delete the queue we created
-            $queue->deleteQueue();
-
-            $this->markTestSkipped('send() receive() are not supported');
+        foreach (['send', 'receive'] as $func) {
+            if (!$adapter->isSupported($func)) {
+                $this->_assertNotSupported($adapter, $func, $queue);
+                return;
+            }
         }
 
         $body = 'this is a test message';
@@ -315,7 +305,7 @@ abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
         // check to see if this function is supported
         $func = 'create';
         if (!$adapter->isSupported($func)) {
-            $this->markTestSkipped($func . '() is not supported');
+            $this->_assertNotSupported($adapter, $func, $queue);
             return;
         }
 
@@ -340,7 +330,7 @@ abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
         // check to see if this function is supported
         $func = 'delete';
         if (!$adapter->isSupported($func)) {
-            $this->markTestSkipped($func . '() is not supported');
+            $this->_assertNotSupported($adapter, $func, $queue);
             return;
         }
 
@@ -368,7 +358,7 @@ abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
         // check to see if this function is supported
         $func = 'isExists';
         if (!$adapter->isSupported($func)) {
-            $this->markTestSkipped($func . '() is not supported');
+            $this->_assertNotSupported($adapter, $func, $queue);
             return;
         }
 
@@ -399,7 +389,7 @@ abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
         // check to see if this function is supported
         $func = 'send';
         if (!$adapter->isSupported($func)) {
-            $this->markTestSkipped($func . '() is not supported');
+            $this->_assertNotSupported($adapter, $func, $queue);
             return;
         }
 
@@ -430,7 +420,7 @@ abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
         // check to see if this function is supported
         $func = 'receive';
         if (!$adapter->isSupported($func)) {
-            $this->markTestSkipped($func . '() is not supported');
+            $this->_assertNotSupported($adapter, $func, $queue);
             return;
         }
 
@@ -467,7 +457,7 @@ abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
         // check to see if this function is supported
         $func = 'deleteMessage';
         if (!$adapter->isSupported($func)) {
-            $this->markTestSkipped($func . '() is not supported');
+            $this->_assertNotSupported($adapter, $func, $queue);
             return;
         }
 
@@ -511,7 +501,7 @@ abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
         // check to see if this function is supported
         $func = 'getQueues';
         if (!$adapter->isSupported($func)) {
-            $this->markTestSkipped($func . '() is not supported');
+            $this->_assertNotSupported($adapter, $func, $queue);
             return;
         }
 
@@ -538,7 +528,7 @@ abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
         // check to see if this function is supported
         $func = 'count';
         if (!$adapter->isSupported($func)) {
-            $this->markTestSkipped($func . '() is not supported');
+            $this->_assertNotSupported($adapter, $func, $queue);
             return;
         }
 
@@ -685,36 +675,23 @@ abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
     }
 
     /**
-     * This tests to see if a message is in-visibile for the proper amount of time
-     *
-     * adapters that support deleteMessage() by nature will support visibility
+     * This tests to see if a message is in-visibile for the proper amount of time;
+     * the tests of the adapters that support visibility call it
      */
-    public function testVisibility()
+    protected function _testVisibility()
     {
         $debug = false;
         $default_timeout = 3; // how long we tell the queue to keep the message invisible
         $extra_delay = 2; // how long we are willing to wait for the test to finish before failing
         // keep in mind that some queue services are on forigen machines and need network time.
 
-        if (false) { // easy comment/uncomment, set to true or false
-            $this->markTestSkipped('Visibility testing takes ' . (string)($default_timeout + $extra_delay) . ' seconds per adapter, if you wish to test this, uncomment the test case in ' . __FILE__ . ' line ' . __LINE__);
-            return;
-        }
-
         $config = $this->getTestConfig();
         $config['timeout'] = 2;
 
-        if (!$queue = $this->createQueue(__FUNCTION__, $config)) {
+        if (!$queue = $this->createQueue('testVisibility', $config)) {
             return;
         }
         $adapter = $queue->getAdapter();
-
-        $not_supported = ['Activemq'];
-        if ((!$queue->isSupported('deleteMessage')) || in_array($this->getAdapterName(), $not_supported)) {
-            $queue->deleteQueue();
-            $this->markTestSkipped($this->getAdapterName() . ' does not support visibility of messages');
-            return;
-        }
 
         $body = 'hello world';
 
@@ -804,6 +781,38 @@ abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
         $return = false;
     }
 
+    /**
+     * An operation the adapter does not support throws a Zend_Queue_Exception
+     * instead of doing something
+     *
+     * @param  Zend_Queue_Adapter_AdapterInterface $adapter
+     * @param  string                              $func
+     * @param  Zend_Queue                          $queue
+     * @return void
+     */
+    protected function _assertNotSupported(Zend_Queue_Adapter_AdapterInterface $adapter, $func, Zend_Queue $queue)
+    {
+        $args = [
+            'create'        => [$queue->getName() . '_unsupported'],
+            'delete'        => [$queue->getName()],
+            'isExists'      => [$queue->getName()],
+            'getQueues'     => [],
+            'count'         => [$queue],
+            'send'          => ['unsupported', $queue],
+            'receive'       => [1, null, $queue],
+            'deleteMessage' => [new Zend_Queue_Message(['queue' => $queue, 'data' => []])],
+        ];
+        $this->assertArrayHasKey($func, $args);
+        $this->assertFalse($adapter->isSupported($func));
+
+        try {
+            call_user_func_array([$adapter, $func], $args[$func]);
+            $this->fail("$func() is reported as not supported but did not throw");
+        } catch (Zend_Queue_Exception $e) {
+            $this->assertStringContainsString('not supported', $e->getMessage());
+        }
+    }
+
     public function testIsSupportException()
     {
         if (!$queue = $this->createQueue(__FUNCTION__)) {
@@ -812,6 +821,7 @@ abstract class Zend_Queue_Adapter_AdapterTest extends TestCase
         $adapter = $queue->getAdapter();
 
         $functions = $adapter->getCapabilities();
+        $this->assertIsArray($functions);
 
         if (!$functions['create']) {
             try {

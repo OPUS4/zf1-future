@@ -240,7 +240,7 @@ class Zend_Queue implements Countable
 
         if (!$adapter instanceof Zend_Queue_Adapter_AdapterInterface) {
             require_once 'Zend/Queue/Exception.php';
-            throw new Zend_Queue_Exception("Adapter class '" . get_class($adapterName) . "' does not implement Zend_Queue_Adapter_AdapterInterface");
+            throw new Zend_Queue_Exception("Adapter class '" . (is_object($adapter) ? get_class($adapter) : gettype($adapter)) . "' does not implement Zend_Queue_Adapter_AdapterInterface");
         }
 
         $this->_adapter = $adapter;
@@ -328,7 +328,7 @@ class Zend_Queue implements Countable
             throw new Zend_Queue_Exception('$name is not a string');
         }
 
-        if ((null !== $timeout) && !is_integer($timeout)) {
+        if ((null !== $timeout) && !is_int($timeout)) {
             require_once 'Zend/Queue/Exception.php';
             throw new Zend_Queue_Exception('$timeout must be an integer');
         }
@@ -438,12 +438,12 @@ class Zend_Queue implements Countable
      */
     public function receive($maxMessages=null, $timeout=null)
     {
-        if (($maxMessages !== null) && !is_integer($maxMessages)) {
+        if (($maxMessages !== null) && !is_int($maxMessages)) {
             require_once 'Zend/Queue/Exception.php';
             throw new Zend_Queue_Exception('$maxMessages must be an integer or null');
         }
 
-        if (($timeout !== null) && !is_integer($timeout)) {
+        if (($timeout !== null) && !is_int($timeout)) {
             require_once 'Zend/Queue/Exception.php';
             throw new Zend_Queue_Exception('$timeout must be an integer or null');
         }
@@ -467,7 +467,6 @@ class Zend_Queue implements Countable
      * $array['function name'] = true or false
      * true is supported, false is not supported.
      *
-     * @param  string $name
      * @return array
      */
     public function getCapabilities()

@@ -119,22 +119,25 @@ class Zend_Db_Adapter_Pdo_MysqlTest extends Zend_Db_Adapter_Pdo_TestCommon
     {
         $params = $this->_util->getParams();
 
-        $params['driver_options'] = [PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true];
+        $params['driver_options'] = [Zend_Db_TestUtil_Pdo_Mysql::getBufferedQueryAttribute() => true];
 
         $db = Zend_Db::factory($this->getDriver(), $params);
 
-        $this->assertTrue((bool) $db->getConnection()->getAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY));
+        $this->assertTrue((bool) $db->getConnection()->getAttribute(Zend_Db_TestUtil_Pdo_Mysql::getBufferedQueryAttribute()));
 
-        $params['driver_options'] = [PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false];
+        $params['driver_options'] = [Zend_Db_TestUtil_Pdo_Mysql::getBufferedQueryAttribute() => false];
 
         $db = Zend_Db::factory($this->getDriver(), $params);
 
-        $this->assertFalse((bool) $db->getConnection()->getAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY));
+        $this->assertFalse((bool) $db->getConnection()->getAttribute(Zend_Db_TestUtil_Pdo_Mysql::getBufferedQueryAttribute()));
     }
 
+    /**
+     * The driver has no sequences
+     */
     public function testAdapterInsertSequence()
     {
-        $this->markTestSkipped($this->getDriver() . ' does not support sequences');
+        $this->_testAdapterInsertWithoutSequence();
     }
 
     /**
@@ -270,17 +273,6 @@ class Zend_Db_Adapter_Pdo_MysqlTest extends Zend_Db_Adapter_Pdo_TestCommon
     }
 
     /**
-     * Ensures that the character sequence ":0'" is handled properly
-     *
-     * @link   http://framework.zend.com/issues/browse/ZF-2059
-     * @return void
-     */
-    public function testZF2059()
-    {
-        $this->markTestIncomplete('Inconsistent test results');
-    }
-
-    /**
      * Ensures that the PDO Buffered Query does not throw the error
      * 2014 General error
      *
@@ -290,7 +282,7 @@ class Zend_Db_Adapter_Pdo_MysqlTest extends Zend_Db_Adapter_Pdo_TestCommon
     public function testZF2101()
     {
         $params = $this->_util->getParams();
-        $params['driver_options'] = [PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true];
+        $params['driver_options'] = [Zend_Db_TestUtil_Pdo_Mysql::getBufferedQueryAttribute() => true];
         $db = Zend_Db::factory($this->getDriver(), $params);
 
         // Set default bound value

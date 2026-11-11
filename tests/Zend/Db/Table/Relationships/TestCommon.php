@@ -1,6 +1,5 @@
 <?php
 
-use PHPUnit\Framework\Error;
 
 /**
  * Zend Framework
@@ -33,6 +32,13 @@ require_once 'Zend/Db/Table/TestSetup.php';
  * @see Zend_Loader
  */
 require_once 'Zend/Loader.php';
+
+/**
+ * Row and rowset classes of the *Custom tables, loaded here because the tables
+ * name them without loading them
+ */
+require_once dirname(dirname(__FILE__)) . '/_files/My/ZendDbTable/Row/TestMyRow.php';
+require_once dirname(dirname(__FILE__)) . '/_files/My/ZendDbTable/Rowset/TestMyRowset.php';
 
 
 
@@ -1355,7 +1361,7 @@ abstract class Zend_Db_Table_Relationships_TestCommon extends Zend_Db_Table_Test
         $relatedTable = $this->_table['products'];
         $relatedTableExpectedColumns = $relatedTable->info(Zend_Db_Table::COLS);
 
-        $row = $table->fetchRow('bug_id = 1');
+        $row = $table->fetchRow($this->_db->quoteIdentifier('bug_id') . ' = 1');
 
         $relatedRows = $row->findManyToManyRowset('My_ZendDbTable_TableProducts', 'My_ZendDbTable_TableBugsProducts');
 

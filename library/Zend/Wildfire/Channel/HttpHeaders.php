@@ -57,7 +57,7 @@ class Zend_Wildfire_Channel_HttpHeaders extends Zend_Controller_Plugin_Abstract 
 
     /**
      * Singleton instance
-     * @var Zend_Wildfire_Channel_HttpHeaders
+     * @var Zend_Wildfire_Channel_HttpHeaders|null
      */
     protected static $_instance = null;
 
@@ -165,7 +165,7 @@ class Zend_Wildfire_Channel_HttpHeaders extends Zend_Controller_Plugin_Abstract 
     protected function _initProtocol($uri)
     {
         switch ($uri) {
-            case Zend_Wildfire_Protocol_JsonStream::PROTOCOL_URI;
+            case Zend_Wildfire_Protocol_JsonStream::PROTOCOL_URI:
                 return new Zend_Wildfire_Protocol_JsonStream();
         }
         require_once 'Zend/Wildfire/Exception.php';
@@ -277,7 +277,7 @@ class Zend_Wildfire_Channel_HttpHeaders extends Zend_Controller_Plugin_Abstract 
         return ($this->getResponse()->canSendHeaders()
                 && (preg_match_all(
                         '/\s?FirePHP\/([\.\d]*)\s?/si',
-                        $this->getRequest()->getHeader('User-Agent'),
+                        (string) $this->getRequest()->getHeader('User-Agent'),
                         $m
                     ) ||
                     (($header = $this->getRequest()->getHeader('X-FirePHP-Version'))

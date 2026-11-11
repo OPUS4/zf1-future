@@ -675,7 +675,7 @@ class Zend_ViewTest extends TestCase
 
     public function testZf995UndefinedPropertiesReturnNull()
     {
-        error_reporting(E_ALL | E_STRICT);
+        error_reporting(E_ALL);
         ini_set('display_errors', true);
         $view = new Zend_View();
         $view->setScriptPath(dirname(__FILE__) . '/View/_templates');
@@ -832,6 +832,25 @@ class Zend_ViewTest extends TestCase
         if ($errno === E_USER_NOTICE) {
             $this->notices[] = $errstr;
         }
+    }
+
+    /**
+     * @group GH-426
+     */
+    public function testStrictVarsAcceptsNullValue()
+    {
+        $view = new Zend_View();
+        $view->setScriptPath(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'View' . DIRECTORY_SEPARATOR . '_templates');
+        $view->strictVars(true);
+        $view->assign('foo', null);
+        $view->bar = null;
+        set_error_handler([$this, 'handleNotices'], E_USER_NOTICE);
+        $view->render('testStrictVars.phtml');
+        restore_error_handler();
+        $this->assertSame([], $this->notices);
+
+        unset($view->foo);
+        $this->assertArrayNotHasKey('foo', $view->getVars());
     }
 
     public function testStrictVars()

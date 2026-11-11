@@ -49,7 +49,7 @@ class Zend_TimeSync implements IteratorAggregate
     /**
      * Holds a reference to the timeserver that is currently being used
      *
-     * @var object
+     * @var object|null
      */
     protected $_current;
 
@@ -300,6 +300,6 @@ class Zend_TimeSync implements IteratorAggregate
         }
         $timeServerObj = new $className($adress, $port);
 
-        $this->_timeservers[$alias] = $timeServerObj;
+        $this->_timeservers[$alias ?? ''] = $timeServerObj;
     }
 }

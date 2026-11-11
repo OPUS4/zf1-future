@@ -64,7 +64,7 @@ abstract class Zend_Db_Table_Row_Abstract implements ArrayAccess, IteratorAggreg
     /**
      * Zend_Db_Table_Abstract parent class or instance.
      *
-     * @var Zend_Db_Table_Abstract
+     * @var Zend_Db_Table_Abstract|null
      */
     protected $_table = null;
 
@@ -298,11 +298,12 @@ abstract class Zend_Db_Table_Row_Abstract implements ArrayAccess, IteratorAggreg
       * Required by the ArrayAccess implementation
       *
       * @param string $offset
+      * @return void
       */
      #[\ReturnTypeWillChange]
      public function offsetUnset($offset)
      {
-         return $this->__unset($offset);
+         $this->__unset($offset);
      }
 
     /**
@@ -644,6 +645,12 @@ abstract class Zend_Db_Table_Row_Abstract implements ArrayAccess, IteratorAggreg
         return $result;
     }
 
+    /**
+     * Returns an iterator over the column/value data
+     * Required by the IteratorAggregate implementation
+     *
+     * @return Traversable
+     */
     #[\ReturnTypeWillChange]
     public function getIterator(): \Traversable
     {
@@ -684,7 +691,7 @@ abstract class Zend_Db_Table_Row_Abstract implements ArrayAccess, IteratorAggreg
      */
     public function refresh()
     {
-        return $this->_refresh();
+        $this->_refresh();
     }
 
     /**
@@ -931,7 +938,7 @@ abstract class Zend_Db_Table_Row_Abstract implements ArrayAccess, IteratorAggreg
      * @param string|Zend_Db_Table_Abstract $parentTable
      * @param string $ruleKey               OPTIONAL
      * @param Zend_Db_Table_Select $select  OPTIONAL
-     * @return Zend_Db_Table_Row_Abstract   Query result from $parentTable
+     * @return Zend_Db_Table_Row_Abstract|null   Query result from $parentTable
      * @throws Zend_Db_Table_Row_Exception If $parentTable is not a table or is not loadable.
      */
     public function findParentRow($parentTable, $ruleKey = null, ?Zend_Db_Table_Select $select = null)

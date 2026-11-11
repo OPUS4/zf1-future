@@ -78,7 +78,7 @@ class Zend_Queue_QueueTest extends TestCase
     public function testConst()
     {
         $this->assertTrue(is_string(Zend_Queue::TIMEOUT));
-        $this->assertTrue(is_integer(Zend_Queue::VISIBILITY_TIMEOUT));
+        $this->assertTrue(is_int(Zend_Queue::VISIBILITY_TIMEOUT));
         $this->assertTrue(is_string(Zend_Queue::NAME));
     }
 
@@ -123,6 +123,14 @@ class Zend_Queue_QueueTest extends TestCase
         $adapter = new Zend_Queue_Adapter_Array($this->config);
         $this->assertTrue($this->queue->setAdapter($adapter) instanceof Zend_Queue);
         $this->assertTrue($this->queue->getAdapter($adapter) instanceof Zend_Queue_Adapter_Array);
+    }
+
+    public function testSetAdapterRejectsObjectWithoutAdapterInterface()
+    {
+        $this->expectException(Zend_Queue_Exception::class);
+        $this->expectExceptionMessage("Adapter class 'stdClass' does not implement Zend_Queue_Adapter_AdapterInterface");
+
+        $this->queue->setAdapter(new stdClass());
     }
 
     public function test_set_getMessageClass()

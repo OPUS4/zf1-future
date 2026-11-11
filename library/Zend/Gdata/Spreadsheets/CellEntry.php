@@ -48,7 +48,6 @@ class Zend_Gdata_Spreadsheets_CellEntry extends Zend_Gdata_Entry
 
     /**
      * Constructs a new Zend_Gdata_Spreadsheets_CellEntry object.
-     * @param string $uri (optional)
      * @param DOMElement $element (optional) The DOMElement on which to base this object.
      */
     public function __construct($element = null)
@@ -70,7 +69,7 @@ class Zend_Gdata_Spreadsheets_CellEntry extends Zend_Gdata_Entry
     {
         $absoluteNodeName = $child->namespaceURI . ':' . $child->localName;
         switch ($absoluteNodeName) {
-        case $this->lookupNamespace('gs') . ':' . 'cell';
+        case $this->lookupNamespace('gs') . ':' . 'cell':
             $cell = new Zend_Gdata_Spreadsheets_Extension_Cell();
             $cell->transferFromDOM($child);
             $this->_cell = $cell;

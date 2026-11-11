@@ -87,15 +87,15 @@ abstract class Zend_Pdf_Action extends Zend_Pdf_Target implements RecursiveItera
         if ($dictionary->Next !== null) {
             if ($dictionary->Next instanceof Zend_Pdf_Element_Dictionary) {
                 // Check if dictionary object is not already processed
-                if (!$processedActions->contains($dictionary->Next)) {
-                    $processedActions->attach($dictionary->Next);
+                if (!$processedActions->offsetExists($dictionary->Next)) {
+                    $processedActions->offsetSet($dictionary->Next);
                     $this->next[] = Zend_Pdf_Action::load($dictionary->Next, $processedActions);
                 }
             } else if ($dictionary->Next instanceof Zend_Pdf_Element_Array) {
                 foreach ($dictionary->Next->items as $chainedActionDictionary) {
                     // Check if dictionary object is not already processed
-                    if (!$processedActions->contains($chainedActionDictionary)) {
-                        $processedActions->attach($chainedActionDictionary);
+                    if (!$processedActions->offsetExists($chainedActionDictionary)) {
+                        $processedActions->offsetSet($chainedActionDictionary);
                         $this->next[] = Zend_Pdf_Action::load($chainedActionDictionary, $processedActions);
                     }
                 }
@@ -142,97 +142,78 @@ abstract class Zend_Pdf_Action extends Zend_Pdf_Target implements RecursiveItera
             case 'GoTo':
                 require_once 'Zend/Pdf/Action/GoTo.php';
                 return new Zend_Pdf_Action_GoTo($dictionary, $processedActions);
-                break;
 
             case 'GoToR':
                 require_once 'Zend/Pdf/Action/GoToR.php';
                 return new Zend_Pdf_Action_GoToR($dictionary, $processedActions);
-                break;
 
             case 'GoToE':
                 require_once 'Zend/Pdf/Action/GoToE.php';
                 return new Zend_Pdf_Action_GoToE($dictionary, $processedActions);
-                break;
 
             case 'Launch':
                 require_once 'Zend/Pdf/Action/Launch.php';
                 return new Zend_Pdf_Action_Launch($dictionary, $processedActions);
-                break;
 
             case 'Thread':
                 require_once 'Zend/Pdf/Action/Thread.php';
                 return new Zend_Pdf_Action_Thread($dictionary, $processedActions);
-                break;
 
             case 'URI':
                 require_once 'Zend/Pdf/Action/URI.php';
                 return new Zend_Pdf_Action_URI($dictionary, $processedActions);
-                break;
 
             case 'Sound':
                 require_once 'Zend/Pdf/Action/Sound.php';
                 return new Zend_Pdf_Action_Sound($dictionary, $processedActions);
-                break;
 
             case 'Movie':
                 require_once 'Zend/Pdf/Action/Movie.php';
                 return new Zend_Pdf_Action_Movie($dictionary, $processedActions);
-                break;
 
             case 'Hide':
                 require_once 'Zend/Pdf/Action/Hide.php';
                 return new Zend_Pdf_Action_Hide($dictionary, $processedActions);
-                break;
 
             case 'Named':
                 require_once 'Zend/Pdf/Action/Named.php';
                 return new Zend_Pdf_Action_Named($dictionary, $processedActions);
-                break;
 
             case 'SubmitForm':
                 require_once 'Zend/Pdf/Action/SubmitForm.php';
                 return new Zend_Pdf_Action_SubmitForm($dictionary, $processedActions);
-                break;
 
             case 'ResetForm':
                 require_once 'Zend/Pdf/Action/ResetForm.php';
                 return new Zend_Pdf_Action_ResetForm($dictionary, $processedActions);
-                break;
 
             case 'ImportData':
                 require_once 'Zend/Pdf/Action/ImportData.php';
                 return new Zend_Pdf_Action_ImportData($dictionary, $processedActions);
-                break;
 
             case 'JavaScript':
                 require_once 'Zend/Pdf/Action/JavaScript.php';
                 return new Zend_Pdf_Action_JavaScript($dictionary, $processedActions);
-                break;
 
             case 'SetOCGState':
                 require_once 'Zend/Pdf/Action/SetOCGState.php';
                 return new Zend_Pdf_Action_SetOCGState($dictionary, $processedActions);
-                break;
 
             case 'Rendition':
                 require_once 'Zend/Pdf/Action/Rendition.php';
                 return new Zend_Pdf_Action_Rendition($dictionary, $processedActions);
-                break;
 
             case 'Trans':
                 require_once 'Zend/Pdf/Action/Trans.php';
                 return new Zend_Pdf_Action_Trans($dictionary, $processedActions);
-                break;
 
             case 'GoTo3DView':
                 require_once 'Zend/Pdf/Action/GoTo3DView.php';
                 return new Zend_Pdf_Action_GoTo3DView($dictionary, $processedActions);
-                break;
 
             default:
                 require_once 'Zend/Pdf/Action/Unknown.php';
                 return new Zend_Pdf_Action_Unknown($dictionary, $processedActions);
-                break;
         }
     }
 
@@ -262,11 +243,11 @@ abstract class Zend_Pdf_Action extends Zend_Pdf_Target implements RecursiveItera
         if ($processedActions === null) {
             $processedActions = new SplObjectStorage();
         }
-        if ($processedActions->contains($this)) {
+        if ($processedActions->offsetExists($this)) {
             require_once 'Zend/Pdf/Exception.php';
             throw new Zend_Pdf_Exception('Action chain cyclyc reference is detected.');
         }
-        $processedActions->attach($this);
+        $processedActions->offsetSet($this);
 
         $childListUpdated = false;
         if (count($this->_originalNextList) != count($this->next)) {
@@ -350,20 +331,24 @@ abstract class Zend_Pdf_Action extends Zend_Pdf_Target implements RecursiveItera
 
     /**
      * Go to next child
+     *
+     * @return void
      */
     #[\ReturnTypeWillChange]
     public function next()
     {
-        return next($this->next);
+        next($this->next);
     }
 
     /**
      * Rewind children
+     *
+     * @return void
      */
     #[\ReturnTypeWillChange]
     public function rewind()
     {
-        return reset($this->next);
+        reset($this->next);
     }
 
     /**

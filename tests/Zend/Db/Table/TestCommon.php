@@ -1,6 +1,5 @@
 <?php
 
-use PHPUnit\Framework\Error;
 
 /**
  * Zend Framework
@@ -28,6 +27,9 @@ use PHPUnit\Framework\Error;
  * @see Zend_Db_Table_TestSetup
  */
 require_once 'Zend/Db/Table/TestSetup.php';
+
+/** resources_ErrorCapture */
+require_once 'resources/ErrorCapture.php';
 
 /**
  * @see Zend_Registry
@@ -755,9 +757,28 @@ abstract class Zend_Db_Table_TestCommon extends Zend_Db_Table_TestSetup
             'verified_by' => 'dduck'
         ];
         $insertResult = $table->insert($row);
-        $lastInsertId = $this->_db->lastInsertId('zfbugs', 'bug_id');
+        $lastInsertId = $this->_lastInsertBugId();
         $this->assertEquals($insertResult, $lastInsertId);
         $this->assertEquals(5, $lastInsertId);
+    }
+
+    /**
+     * Prepares the bugs table for inserts with the key given
+     *
+     * @return void
+     */
+    protected function _allowExplicitBugIds()
+    {
+    }
+
+    /**
+     * The key of the last row inserted into zfbugs, as the driver reports it
+     *
+     * @return string
+     */
+    protected function _lastInsertBugId()
+    {
+        return $this->_db->lastInsertId('zfbugs', 'bug_id');
     }
 
     public function testTableInsertWithSchema()
@@ -806,6 +827,23 @@ abstract class Zend_Db_Table_TestCommon extends Zend_Db_Table_TestSetup
         $this->assertEquals($insertResult, $lastInsertId);
         $this->assertEquals($insertResult, $lastSequenceId);
         $this->assertEquals(4, $insertResult);
+    }
+
+    /**
+     * The sequence test of a driver without sequences: the key of an auto-increment
+     * table is returned by insert()
+     */
+    protected function _testTableInsertWithoutSequence()
+    {
+        $table = $this->_getTable(
+            'My_ZendDbTable_TableProducts',
+            [Zend_Db_Table_Abstract::SEQUENCE => true]
+        );
+
+        $insertResult = $table->insert(['product_name' => 'Solaris']);
+        $this->assertEquals(4, $insertResult);
+        $this->assertEquals($insertResult, $this->_db->lastInsertId('zfproducts'));
+        $this->assertNull($this->_db->lastSequenceId('zfproducts_seq'));
     }
 
     public function testTableInsertNaturalCompound()
@@ -874,31 +912,30 @@ abstract class Zend_Db_Table_TestCommon extends Zend_Db_Table_TestSetup
      */
     public function testTableInsertWithHighMemoryUsage()
     {
-        $this->markTestSkipped('Very slow test inserts thousands of rows');
+        $table = $this->_table['bugs_products'];
 
-        $table = $this->_table['products'];
-
-        // insert one row to prime the pump
-        $table->insert(['product_name' => "product0"]);
-
-        // measure current memory usage
-        $mem1 = memory_get_usage();
-
-        // insert a lot of rows
-        $n = 100000;
-        for ($i = 1; $i <= $n; $i++) {
-            $table->insert(['product_name' => "product$i"]);
-            if ($i % 1000 == 0) {
-                echo '.';
+        // the table has a key of two columns that are given, no sequence or identity
+        $this->_db->beginTransaction();
+        try {
+            // warm up caches and statement handling
+            for ($i = 1; $i <= 200; $i++) {
+                $table->insert(['bug_id' => 1000 + $i, 'product_id' => 1]);
             }
+            gc_collect_cycles();
+            $mem1 = memory_get_usage();
+
+            $n = 2000;
+            for ($i = 1; $i <= $n; $i++) {
+                $table->insert(['bug_id' => 2000 + $i, 'product_id' => 1]);
+            }
+            gc_collect_cycles();
+            $mem2 = memory_get_usage();
+        } finally {
+            $this->_db->rollBack();
         }
 
-        // measure new memory usage
-        $mem2 = memory_get_usage();
-
-        // compare new memory usage to original
-        $mem_delta = $mem2 - $mem1;
-        $this->assertThat($mem_delta, $this->lessThan(513));
+        // a leak of a few bytes per insert would add up to many kilobytes
+        $this->assertLessThan(32 * 1024, $mem2 - $mem1);
     }
 
     /**
@@ -933,14 +970,15 @@ abstract class Zend_Db_Table_TestCommon extends Zend_Db_Table_TestSetup
         $this->assertTrue(is_numeric($insertResult), 'Empty array did not return assigned primary key');
 
         // zero '0'
+        $this->_allowExplicitBugIds();
         $row['bug_id'] = '0';
-        $table->delete('bug_id > 0'); // clear table
+        $table->delete($this->_db->quoteIdentifier('bug_id') . ' > 0'); // clear table
         $insertResult = $table->insert($row);
         $this->assertEquals('0', $insertResult, 'Zero string did not return assigned primary key');
 
         // zero 0
         $row['bug_id'] = 0;
-        $table->delete('bug_id = 0'); // clear table
+        $table->delete($this->_db->quoteIdentifier('bug_id') . ' = 0'); // clear table
         $insertResult = $table->insert($row);
         $this->assertEquals('0', $insertResult, 'Zero int did not return assigned primary key');
     }
@@ -1462,14 +1500,16 @@ abstract class Zend_Db_Table_TestCommon extends Zend_Db_Table_TestSetup
         $this->assertEquals(0, count($rowset));
     }
 
+    /**
+     * Runs in a process of its own: the custom classes are loaded once per
+     * process, the test checks when that happens
+     *
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
     public function testTableLoadsCustomRowClass()
     {
         $this->_useMyIncludePath();
-
-        if (class_exists('My_ZendDbTable_Row_TestMyRow')) {
-            $this->markTestSkipped("Cannot test loading the custom Row class because it is already loaded");
-            return;
-        }
 
         $this->assertFalse(
             class_exists('My_ZendDbTable_Row_TestMyRow', false),
@@ -1549,13 +1589,16 @@ abstract class Zend_Db_Table_TestCommon extends Zend_Db_Table_TestSetup
 
     public function testTableSetDefaultMetadataCacheWriteAccess()
     {
-        $this->expectException(\PHPUnit\Framework\Error\Notice::class);
-        $this->expectExceptionMessage('Failed saving metadata to metadataCache');
         $cache = $this->_getCacheNowrite();
         Zend_Db_Table_Abstract::setDefaultMetadataCache($cache);
-        $bugsTable = $this->_getTable('My_ZendDbTable_TableBugs');
-        $primary = $bugsTable->info(Zend_Db_Table_Abstract::PRIMARY);
-        Zend_Db_Table_Abstract::setDefaultMetadataCache(null);
+        try {
+            $bugsTable = $this->_getTable('My_ZendDbTable_TableBugs');
+            resources_ErrorCapture::assertTriggers(function () use ($bugsTable) {
+                $bugsTable->info(Zend_Db_Table_Abstract::PRIMARY);
+            }, E_USER_NOTICE, 'Failed saving metadata to metadataCache');
+        } finally {
+            Zend_Db_Table_Abstract::setDefaultMetadataCache(null);
+        }
     }
 
     /**
@@ -1811,7 +1854,7 @@ abstract class Zend_Db_Table_TestCommon extends Zend_Db_Table_TestSetup
         }
 
         // Perform the delete
-        $tblRecursive->delete($tblRecursive->getAdapter()->quoteInto('item_id = ?', 1));
+        $tblRecursive->delete($tblRecursive->getAdapter()->quoteInto($this->_db->quoteIdentifier('item_id') . ' = ?', 1));
 
         // Assert that all children of #1 (2,3,4,5) are removed recursively
         $this->assertNull($tblRecursive->find(1)->current());

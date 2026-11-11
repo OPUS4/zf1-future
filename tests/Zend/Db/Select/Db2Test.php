@@ -36,11 +36,6 @@ require_once 'Zend/Db/Select/TestCommon.php';
  */
 class Zend_Db_Select_Db2Test extends Zend_Db_Select_TestCommon
 {
-    public function testSelectJoinCross()
-    {
-        $this->markTestSkipped($this->getDriver() . ' does not support CROSS JOIN');
-    }
-
     /**
      * ZF-5234: this test must be done on string field
      */
@@ -66,5 +61,10 @@ class Zend_Db_Select_Db2Test extends Zend_Db_Select_TestCommon
     public function getDriver()
     {
         return 'Db2';
+    }
+
+    public function testSelectFromForUpdate()
+    {
+        $this->_testSelectFromForUpdate();
     }
 }

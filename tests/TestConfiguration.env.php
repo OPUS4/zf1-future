@@ -56,22 +56,13 @@ defined('TESTS_ZEND_AUTH_ADAPTER_LDAP_ONLINE_ENABLED') || define('TESTS_ZEND_AUT
 /**
  * Zend_Cache
  *
- * TESTS_ZEND_CACHE_SQLITE_ENABLED     => sqlite extension has to be enabled
  * TESTS_ZEND_CACHE_APC_ENABLED        => apc extension has to be enabled
- * TESTS_ZEND_CACHE_WINCACHE_ENABLED   => wincache extension has to be enabled
  * TESTS_ZEND_CACHE_MEMCACHED_ENABLED  => memcache extension has to be enabled and
  *                                        a memcached server has to be available
  * TESTS_ZEND_CACHE_LIBMEMCACHED_ENABLED => memcached extension has to be enabled and
  *                                          a memcached server has to be available
- * TESTS_ZEND_CACHE_XCACHE_ENABLED     => xcache extension has to be enabled
  */
-defined('TESTS_ZEND_CACHE_SQLITE_ENABLED') || define('TESTS_ZEND_CACHE_SQLITE_ENABLED', getenv('TESTS_ZEND_CACHE_SQLITE_ENABLED') ?: false);
 defined('TESTS_ZEND_CACHE_APC_ENABLED') || define('TESTS_ZEND_CACHE_APC_ENABLED', getenv('TESTS_ZEND_CACHE_APC_ENABLED') ?: false);
-defined('TESTS_ZEND_CACHE_WINCACHE_ENABLED') || define('TESTS_ZEND_CACHE_WINCACHE_ENABLED', getenv('TESTS_ZEND_CACHE_WINCACHE_ENABLED') ?: false);
-defined('TESTS_ZEND_CACHE_XCACHE_ENABLED') || define('TESTS_ZEND_CACHE_XCACHE_ENABLED', getenv('TESTS_ZEND_CACHE_XCACHE_ENABLED') ?: false);
-defined('TESTS_ZEND_CACHE_XCACHE_USER') || define('TESTS_ZEND_CACHE_XCACHE_USER', getenv('TESTS_ZEND_CACHE_XCACHE_USER') ?: null);
-defined('TESTS_ZEND_CACHE_XCACHE_PASSWORD') || define('TESTS_ZEND_CACHE_XCACHE_PASSWORD', getenv('TESTS_ZEND_CACHE_XCACHE_PASSWORD') ?: null);
-defined('TESTS_ZEND_CACHE_PLATFORM_ENABLED') || define('TESTS_ZEND_CACHE_PLATFORM_ENABLED', getenv('TESTS_ZEND_CACHE_PLATFORM_ENABLED') ?: false);
 defined('TESTS_ZEND_CACHE_MEMCACHED_ENABLED') || define('TESTS_ZEND_CACHE_MEMCACHED_ENABLED', getenv('TESTS_ZEND_CACHE_MEMCACHED_ENABLED') ?: false);
 defined('TESTS_ZEND_CACHE_MEMCACHED_HOST') || define('TESTS_ZEND_CACHE_MEMCACHED_HOST', getenv('TESTS_ZEND_CACHE_MEMCACHED_HOST') ?: '127.0.0.1');
 defined('TESTS_ZEND_CACHE_MEMCACHED_PORT') || define('TESTS_ZEND_CACHE_MEMCACHED_PORT', getenv('TESTS_ZEND_CACHE_MEMCACHED_PORT') ?: 11211);
@@ -89,14 +80,6 @@ defined('TESTS_ZEND_CACHE_LIBMEMCACHED_WEIGHT') || define('TESTS_ZEND_CACHE_LIBM
  */
 defined('TESTS_ZEND_CLOUD_STORAGE_WINDOWSAZURE_CONTAINER') || define('TESTS_ZEND_CLOUD_STORAGE_WINDOWSAZURE_CONTAINER', getenv('TESTS_ZEND_CLOUD_STORAGE_WINDOWSAZURE_CONTAINER') ?: 'simplecloudcontainer');
 
-
-/**
- * Zend_Controller
- *
- * TESTS_ZEND_CONTROLLER_DISPATCHER_OB => test disabling output buffering in
- *                                        dispatcher
- */
-defined('TESTS_ZEND_CONTROLLER_DISPATCHER_OB') || define('TESTS_ZEND_CONTROLLER_DISPATCHER_OB', getenv('TESTS_ZEND_CONTROLLER_DISPATCHER_OB') ?: false);
 
 /**
  * Zend_Db_Adapter_Pdo_Mysql and Zend_Db_Adapter_Mysqli
@@ -296,7 +279,19 @@ defined('TESTS_ZEND_GDATA_PHOTOS_ONLINE_ENABLED') || define('TESTS_ZEND_GDATA_PH
  * under your web server(s) document root and set this constant to point to the
  * URL of this directory.
  */
+/**
+ * Zend_Feed_Pubsubhubbub_Subscriber tests post to testRawPostData.php of the
+ * same directory, so the URL of the Zend_Http_Client files serves here too.
+ */
+defined('TESTS_Zend_Feed_Pubsubhubbub_BASEURI') || define('TESTS_Zend_Feed_Pubsubhubbub_BASEURI', getenv('TESTS_ZEND_FEED_PUBSUBHUBBUB_BASEURI') ?: false);
+
 defined('TESTS_ZEND_HTTP_CLIENT_BASEURI') || define('TESTS_ZEND_HTTP_CLIENT_BASEURI', getenv('TESTS_ZEND_HTTP_CLIENT_BASEURI') ?: false);
+
+/**
+ * URL of the same files over HTTPS, for the HTTPS tests of the Socket and Proxy
+ * adapters. The certificate is not verified, so a self-signed one does.
+ */
+defined('TESTS_ZEND_HTTP_CLIENT_HTTPS_BASEURI') || define('TESTS_ZEND_HTTP_CLIENT_HTTPS_BASEURI', getenv('TESTS_ZEND_HTTP_CLIENT_HTTPS_BASEURI') ?: false);
 
 /**
  * Zend_Http_Client_Proxy tests
@@ -316,54 +311,6 @@ defined('TESTS_ZEND_HTTP_CLIENT_HTTP_PROXY_PASS') || define('TESTS_ZEND_HTTP_CLI
  */
 defined('TESTS_ZEND_HTTP_USERAGENT_WURFL_LIB_DIR') || define('TESTS_ZEND_HTTP_USERAGENT_WURFL_LIB_DIR', getenv('TESTS_ZEND_HTTP_USERAGENT_WURFL_LIB_DIR') ?: false);
 defined('TESTS_ZEND_HTTP_USERAGENT_WURFL_CONFIG_FILE') || define('TESTS_ZEND_HTTP_USERAGENT_WURFL_CONFIG_FILE', getenv('TESTS_ZEND_HTTP_USERAGENT_WURFL_CONFIG_FILE') ?: false);
-
-/**
- * Location of DeviceAtlas library and data file, for testing mobile device
- * detection against DeviceAtlas
- */
-defined('TESTS_ZEND_HTTP_USERAGENT_DEVICEATLAS_LIB_DIR') || define('TESTS_ZEND_HTTP_USERAGENT_DEVICEATLAS_LIB_DIR', getenv('TESTS_ZEND_HTTP_USERAGENT_DEVICEATLAS_LIB_DIR') ?: false);
-defined('TESTS_ZEND_HTTP_USERAGENT_DEVICEATLAS_DATA_FILE') || define('TESTS_ZEND_HTTP_USERAGENT_DEVICEATLAS_DATA_FILE', getenv('TESTS_ZEND_HTTP_USERAGENT_DEVICEATLAS_DATA_FILE') ?: false);
-
-/**
- * Location of TeraWurfl library and data file, for testing mobile device
- * detection against TeraWurfl
- */
-defined('TESTS_ZEND_HTTP_USERAGENT_TERAWURFL_LIB_DIR') || define('TESTS_ZEND_HTTP_USERAGENT_TERAWURFL_LIB_DIR', getenv('TESTS_ZEND_HTTP_USERAGENT_TERAWURFL_LIB_DIR') ?: false);
-
-/**
- * Zend_Loader_Autoloader multi-version support tests
- *
- * ENABLED:      whether or not to run the multi-version tests
- * PATH:         path to a directory containing multiple ZF version installs
- * LATEST:       most recent ZF version in the PATH
- *               e.g., "1.9.2"
- * LATEST_MAJOR: most recent ZF major version in the PATH to test against
- *               e.g., "1.9.2"
- * LATEST_MINOR: most recent ZF minor version in the PATH to test against
- *               e.g., "1.8.4PL1"
- * SPECIFIC:     specific ZF version in the PATH to test against
- *               e.g., "1.7.6"
- * As an example, consider the following tree:
- *     ZendFramework/
- *     |-- 1.9.2
- *     |-- ZendFramework-1.9.1-minimal
- *     |-- 1.8.4PL1
- *     |-- 1.8.4
- *     |-- ZendFramework-1.8.3
- *     |-- 1.7.8
- *     |-- 1.7.7
- *     |-- 1.7.6
- * You would then set the value of "LATEST" and "LATEST_MAJOR" to "1.9.2", and
- * could choose between "1.9.2", "1.8.4PL1", and "1.7.8" for "LATEST_MINOR",
- * and any version number for "SPECIFIC". "PATH" would point to the parent
- * "ZendFramework" directory.
- */
-defined('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_ENABLED') || define('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_ENABLED', getenv('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_ENABLED') ?: false);
-defined('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_PATH') || define('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_PATH', getenv('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_PATH') ?: false);
-defined('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_LATEST') || define('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_LATEST', getenv('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_LATEST') ?: false);
-defined('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_LATEST_MAJOR') || define('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_LATEST_MAJOR', getenv('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_LATEST_MAJOR') ?: false);
-defined('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_LATEST_MINOR') || define('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_LATEST_MINOR', getenv('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_LATEST_MINOR') ?: false);
-defined('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_SPECIFIC') || define('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_SPECIFIC', getenv('TESTS_ZEND_LOADER_AUTOLOADER_MULTIVERSION_SPECIFIC') ?: false);
 
 /**
  * Zend_Ldap online tests
@@ -400,7 +347,7 @@ defined('TESTS_ZEND_LDAP_ONLINE_ENABLED') || define('TESTS_ZEND_LDAP_ONLINE_ENAB
  *                    ALT_DN: CN=Alice Baker,OU=Sales,DC=foo,DC=net
  *              ALT_PASSWORD: apass
  */
-defined('TESTS_ZEND_LDAP_HOST') || define('TESTS_ZEND_LDAP_HOST', getenv('TESTS_GENERATE_REPORT') ?: 'localhost');
+defined('TESTS_ZEND_LDAP_HOST') || define('TESTS_ZEND_LDAP_HOST', getenv('TESTS_ZEND_LDAP_HOST') ?: 'localhost');
 defined('TESTS_ZEND_LDAP_PORT') || define('TESTS_ZEND_LDAP_PORT', getenv('TESTS_ZEND_LDAP_PORT') ?: 1389);
 defined('TESTS_ZEND_LDAP_USE_START_TLS') || define('TESTS_ZEND_LDAP_USE_START_TLS', getenv('TESTS_ZEND_LDAP_USE_START_TLS') ?: false);
 defined('TESTS_ZEND_LDAP_USE_SSL') || define('TESTS_ZEND_LDAP_USE_SSL', getenv('TESTS_ZEND_LDAP_USE_SSL') ?: false);
@@ -540,14 +487,6 @@ defined('TESTS_ZEND_MAIL_SMTP_AUTH') || define('TESTS_ZEND_MAIL_SMTP_AUTH', gete
  *     dbname: "queue"
  * }
  *
- * The PlatformJobQueue adapter expects two parameters, the host and password.
- * The HOST string should include both the host and port (typically 10003):
- *     127.0.0.1:10003
- * When running tests against PlatformJobQueue, it's best to do so where
- * Platform is installed on localhost and has maximum workers set to 20
- * (default is 5); do so with this zend.ini setting:
- *     zend_jq.max_num_of_request_workers=20
- *
  * Selectively define the below in order to run tests for them.
  */
 defined('TESTS_ZEND_QUEUE_ACTIVEMQ_ENABLED') || define('TESTS_ZEND_QUEUE_ACTIVEMQ_ENABLED', getenv('TESTS_ZEND_QUEUE_ACTIVEMQ_ENABLED') ?: false);
@@ -555,12 +494,6 @@ defined('TESTS_ZEND_QUEUE_ACTIVEMQ_SCHEME') || define('TESTS_ZEND_QUEUE_ACTIVEMQ
 defined('TESTS_ZEND_QUEUE_ACTIVEMQ_HOST') || define('TESTS_ZEND_QUEUE_ACTIVEMQ_HOST', getenv('TESTS_ZEND_QUEUE_ACTIVEMQ_HOST') ?: false);
 defined('TESTS_ZEND_QUEUE_ACTIVEMQ_PORT') || define('TESTS_ZEND_QUEUE_ACTIVEMQ_PORT', getenv('TESTS_ZEND_QUEUE_ACTIVEMQ_PORT') ?: false);
 defined('TESTS_ZEND_QUEUE_DB') || define('TESTS_ZEND_QUEUE_DB', getenv('TESTS_ZEND_QUEUE_DB') ?: false);
-defined('TESTS_ZEND_QUEUE_MEMCACHEQ_ENABLED') || define('TESTS_ZEND_QUEUE_MEMCACHEQ_ENABLED', getenv('TESTS_ZEND_QUEUE_MEMCACHEQ_ENABLED') ?: false);
-defined('TESTS_ZEND_QUEUE_MEMCACHEQ_HOST') || define('TESTS_ZEND_QUEUE_MEMCACHEQ_HOST', getenv('TESTS_ZEND_QUEUE_MEMCACHEQ_HOST') ?: false);
-defined('TESTS_ZEND_QUEUE_MEMCACHEQ_PORT') || define('TESTS_ZEND_QUEUE_MEMCACHEQ_PORT', getenv('TESTS_ZEND_QUEUE_MEMCACHEQ_PORT') ?: false);
-defined('TESTS_ZEND_QUEUE_PLATFORMJQ_ENABLED') || define('TESTS_ZEND_QUEUE_PLATFORMJQ_ENABLED', getenv('TESTS_ZEND_QUEUE_PLATFORMJQ_ENABLED') ?: false);
-defined('TESTS_ZEND_QUEUE_PLATFORMJQ_HOST') || define('TESTS_ZEND_QUEUE_PLATFORMJQ_HOST', getenv('TESTS_ZEND_QUEUE_PLATFORMJQ_HOST') ?: false);
-defined('TESTS_ZEND_QUEUE_PLATFORMJQ_PASS') || define('TESTS_ZEND_QUEUE_PLATFORMJQ_PASS', getenv('TESTS_ZEND_QUEUE_PLATFORMJQ_PASS') ?: false);
 
 /**
  * Zend_Rest tests
@@ -571,15 +504,10 @@ defined('TESTS_ZEND_REST_ONLINE_ENABLED') || define('TESTS_ZEND_REST_ONLINE_ENAB
 /**
  * Zend_Serializer adapter tests
  *
- * TESTS_ZEND_SERIALIZER_ADAPTER_WDDX_ENABLED:
- *   - enable wddx adapter tests
- *   - needs wddx and SimpleXml php extension installed
- *
  * TESTS_ZEND_SERIALIZER_ADAPTER_IGBINARY_ENABLED:
  *   - enable igbinary adapter tests
  *   - needs igbinary php extension installed
  */
-defined('TESTS_ZEND_SERIALIZER_ADAPTER_WDDX_ENABLED') || define('TESTS_ZEND_SERIALIZER_ADAPTER_WDDX_ENABLED', getenv('TESTS_ZEND_SERIALIZER_ADAPTER_WDDX_ENABLED') ?: false);
 defined('TESTS_ZEND_SERIALIZER_ADAPTER_IGBINARY_ENABLED') || define('TESTS_ZEND_SERIALIZER_ADAPTER_IGBINARY_ENABLED', getenv('TESTS_ZEND_SERIALIZER_ADAPTER_IGBINARY_ENABLED') ?: false);
 
 /**
@@ -598,12 +526,6 @@ defined('TESTS_ZEND_SERVICE_AMAZON_SQS_QUEUE') || define('TESTS_ZEND_SERVICE_AMA
  * Zend_Service_Delicious tests
  */
 defined('TESTS_ZEND_SERVICE_DELICIOUS_ENABLED') || define('TESTS_ZEND_SERVICE_DELICIOUS_ENABLED', getenv('TESTS_ZEND_SERVICE_DELICIOUS_ENABLED') ?: false);
-
-/**
- * Zend_Service_Ebay online tests
- */
-defined('TESTS_ZEND_SERVICE_EBAY_ONLINE_ENABLED') || define('TESTS_ZEND_SERVICE_EBAY_ONLINE_ENABLED', getenv('TESTS_ZEND_SERVICE_EBAY_ONLINE_ENABLED') ?: false);
-defined('TESTS_ZEND_SERVICE_EBAY_ONLINE_APPID') || define('TESTS_ZEND_SERVICE_EBAY_ONLINE_APPID', getenv('TESTS_ZEND_SERVICE_EBAY_ONLINE_APPID') ?: 'Enter APPID here');
 
 /**
  * Zend_Service_Flickr online tests
@@ -805,26 +727,6 @@ defined('TESTS_ZEND_SERVICE_YAHOO_ONLINE_APPID') || define('TESTS_ZEND_SERVICE_Y
  * when having more than one version installed and include paths are changing.
  */
 defined('TESTS_ZEND_SOAP_AUTODISCOVER_ONLINE_SERVER_BASEURI') || define('TESTS_ZEND_SOAP_AUTODISCOVER_ONLINE_SERVER_BASEURI', getenv('TESTS_ZEND_SOAP_AUTODISCOVER_ONLINE_SERVER_BASEURI') ?: false);
-
-/**
- * Zend_Uri tests
- *
- * Setting CRASH_TEST_ENABLED to true will enable some tests that may
- * potentially crash PHP on some systems, due to very deep-nesting regular
- * expressions.
- *
- * Only do this if you know what you are doing!
- */
-defined('TESTS_ZEND_URI_CRASH_TEST_ENABLED') || define('TESTS_ZEND_URI_CRASH_TEST_ENABLED', getenv('TESTS_ZEND_URI_CRASH_TEST_ENABLED') ?: false);
-
-/**
- * Zend_Version tests
- *
- * Set ONLINE_ENABLED if you wish to run validators that require network
- * connectivity.
- */
-defined('TESTS_ZEND_VERSION_ONLINE_ENABLED') || define('TESTS_ZEND_VERSION_ONLINE_ENABLED', getenv('TESTS_ZEND_VERSION_ONLINE_ENABLED') ?: false);
-
 
 /**
  * Zend_Validate tests

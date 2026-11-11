@@ -1,6 +1,5 @@
 <?php
 
-use PHPUnit\Framework\Error\Notice;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
 /**
@@ -29,6 +28,9 @@ use Yoast\PHPUnitPolyfills\TestCases\TestCase;
  */
 require_once 'Zend/Session.php';
 
+/** resources_ErrorCapture */
+require_once 'resources/ErrorCapture.php';
+
 
 /**
  * Black box testing for Zend_Session
@@ -40,7 +42,7 @@ require_once 'Zend/Session.php';
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  * @group      Zend_Session
  */
-class Zend_SessionTest extends TestCase
+class Zend_Session_SessionTest extends TestCase
 {
     /**
      * Helper script invoked via exec()
@@ -64,11 +66,6 @@ class Zend_SessionTest extends TestCase
     public function __construct($name = null, array $data = [], $dataName = '')
     {
         parent::__construct($name, $data, $dataName);
-        $this->_script = 'php '
-            . '-c ' . escapeshellarg(php_ini_loaded_file()) . ' '
-            . '-d include_path=' . get_include_path() . ' '
-            . escapeshellarg(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'SessionTestHelper.php');
-
         $this->_savePath = ini_get('session.save_path');
     }
 
@@ -80,6 +77,13 @@ class Zend_SessionTest extends TestCase
         // _unitTestEnabled is utilised by other tests to handle session data processing
         // Zend_Session tests should pass with _unitTestEnabled turned off
         Zend_Session::$_unitTestEnabled = false;
+
+        // the helper reads and writes the sessions where this process does
+        $this->_script = 'php '
+            . '-c ' . escapeshellarg(php_ini_loaded_file()) . ' '
+            . '-d include_path=' . escapeshellarg(get_include_path()) . ' '
+            . '-d session.save_path=' . escapeshellarg(ini_get('session.save_path')) . ' '
+            . escapeshellarg(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'SessionTestHelper.php');
     }
 
     /**
@@ -89,12 +93,14 @@ class Zend_SessionTest extends TestCase
      */
     protected function tear_down()
     {
-        ini_set('session.save_path', $this->_savePath);
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            ini_set('session.save_path', $this->_savePath);
+        }
 
         $this->assertSame(
-            E_ALL | E_STRICT,
-            error_reporting(E_ALL | E_STRICT),
-            'A test altered error_reporting to something other than E_ALL | E_STRICT'
+            E_ALL,
+            error_reporting(E_ALL),
+            'A test altered error_reporting to something other than E_ALL'
         );
 
         Zend_Session_Namespace::unlockAll();
@@ -119,7 +125,7 @@ class Zend_SessionTest extends TestCase
      */
     public function sortResult(array $result)
     {
-        $results = explode(';', array_pop($result));
+        $results = explode(';', (string) array_pop($result));
         sort($results);
         return implode(';', $results);
     }
@@ -802,6 +808,7 @@ class Zend_SessionTest extends TestCase
      * test expiration of namespaces and namespace variables by seconds; expect expiration of specified keys/namespace
      *
      * @runInSeparateProcess
+     * @preserveGlobalState disabled
      * @return void
      */
     public function testSetExpirationSeconds()
@@ -872,6 +879,7 @@ class Zend_SessionTest extends TestCase
      * test expiration of namespaces by hops; expect expiration of specified namespace in the proper number of hops
      *
      * @runInSeparateProcess
+     * @preserveGlobalState disabled
      * @return void
      */
     public function testSetExpireSessionHops()
@@ -909,6 +917,7 @@ class Zend_SessionTest extends TestCase
      * test expiration of namespace variables by hops; expect expiration of specified keys in the proper number of hops
      *
      * @runInSeparateProcess
+     * @preserveGlobalState disabled
      * @return void
      */
     public function testSetExpireSessionVarsByHops1()
@@ -920,6 +929,7 @@ class Zend_SessionTest extends TestCase
      * sanity check .. we should be able to repeat this test without problems
      *
      * @runInSeparateProcess
+     * @preserveGlobalState disabled
      * @return void
      */
     public function testSetExpireSessionVarsByHops2()
@@ -930,6 +940,7 @@ class Zend_SessionTest extends TestCase
     /**
      * @group ZF-7196
      * @runInSeparateProcess
+     * @preserveGlobalState disabled
      */
     public function testUnsettingNamespaceKeyWithoutUnsettingCompleteExpirationData()
     {
@@ -1015,6 +1026,7 @@ class Zend_SessionTest extends TestCase
      * test expiration of namespace variables by hops; expect expiration of specified keys in the proper number of hops
      *
      * @runInSeparateProcess
+     * @preserveGlobalState disabled
      * @return void
      */
     public function testSetExpireSessionVarsByHopsOnUse()
@@ -1104,23 +1116,20 @@ class Zend_SessionTest extends TestCase
      */
     public function testNoNoticesIfNoValidatorDataInSession()
     {
-        try {
+        require_once dirname(__FILE__) . '/Validator/NoticeValidator.php';
+        resources_ErrorCapture::assertTriggersNothing(function () {
             Zend_Session::start();
-            require_once dirname(__FILE__) . '/Validator/NoticeValidator.php';
             Zend_Session::registerValidator(new Zend_Session_Validator_NoticeValidator());
-        } catch (Notice $exception) {
-            $this->fail($exception->getMessage());
-        }
+        }, E_NOTICE | E_USER_NOTICE | E_WARNING | E_USER_WARNING);
     }
 
     /**
      * @group ZF-3378
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
      */
     public function testInvalidPreexistingSessionIdDoesNotPreventRegenerationOfSid()
     {
-        // Pattern: [0-9a-v]*
-        ini_set('session.hash_bits_per_character', 5);
-
         // Session store
         $sessionCharSet = array_merge(range(0, 9), range('a', 'v'));
         $sessionStore = dirname(__FILE__)
@@ -1156,7 +1165,11 @@ class Zend_SessionTest extends TestCase
         Zend_Session::$_unitTestEnabled = true;
         Zend_Session::destroy();
         foreach ($sessionCharSet as $subdir) {
-            @rmdir($sessionStore . DIRECTORY_SEPARATOR . $subdir);
+            $dir = $sessionStore . DIRECTORY_SEPARATOR . $subdir;
+            foreach (glob($dir . DIRECTORY_SEPARATOR . 'sess_*') ?: [] as $file) {
+                @unlink($file);
+            }
+            @rmdir($dir);
         }
         @rmdir($sessionStore);
 

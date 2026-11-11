@@ -10,6 +10,9 @@
 require_once 'Zend/Cache.php';
 require_once 'Zend/Cache/Backend/Static.php';
 
+/** resources_ErrorCapture */
+require_once 'resources/ErrorCapture.php';
+
 /**
  * Zend_Log
  */
@@ -164,9 +167,10 @@ class Zend_Cache_StaticBackendTest extends Zend_Cache_CommonBackendTest
      */
     public function testDirectoryUmaskTriggersError()
     {
-        $this->expectException(\PHPUnit\Framework\Error\Notice::class);
-        $this->expectExceptionMessage("'cache_directory_umask' is deprecated -> please use 'cache_directory_perm' instead");
-        $this->_instance->setOption('cache_directory_umask', '777');
+        $instance = $this->_instance;
+        resources_ErrorCapture::assertTriggers(function () use ($instance) {
+            $instance->setOption('cache_directory_umask', '777');
+        }, E_USER_NOTICE, "'cache_directory_umask' is deprecated -> please use 'cache_directory_perm' instead");
     }
 
     /**
@@ -174,9 +178,10 @@ class Zend_Cache_StaticBackendTest extends Zend_Cache_CommonBackendTest
      */
     public function testFileUmaskTriggersError()
     {
-        $this->expectException(\PHPUnit\Framework\Error\Notice::class);
-        $this->expectExceptionMessage("'cache_file_umask' is deprecated -> please use 'cache_file_perm' instead");
-        $this->_instance->setOption('cache_file_umask', '777');
+        $instance = $this->_instance;
+        resources_ErrorCapture::assertTriggers(function () use ($instance) {
+            $instance->setOption('cache_file_umask', '777');
+        }, E_USER_NOTICE, "'cache_file_umask' is deprecated -> please use 'cache_file_perm' instead");
     }
 
     public function testSaveWithSpecificExtensionWithTag()
@@ -300,21 +305,23 @@ class Zend_Cache_StaticBackendTest extends Zend_Cache_CommonBackendTest
     }
 
 
-    // Irrelevant Tests (from common tests)
     /**
-     * @doesNotPerformAssertions
+     * Static files have no lifetime, a negative lifetime does not expire them
      */
     public function testGetWithAnExpiredCacheId()
     {
-        $this->markTestSkipped('Irrelevant Test');
+        $this->_instance->setDirectives(['lifetime' => -1]);
+        $this->assertEquals('bar : data to cache', $this->_instance->load(bin2hex('/bar')));
     }
 
     /**
-     * @doesNotPerformAssertions
+     * Static files have no lifetime, so there is nothing old to clean
      */
     public function testCleanModeOld()
     {
-        $this->markTestSkipped('Irrelevant Test');
+        $this->assertFalse($this->_instance->clean(Zend_Cache::CLEANING_MODE_OLD));
+        $this->assertTrue($this->_instance->test(bin2hex('/bar')));
+        $this->assertTrue($this->_instance->test(bin2hex('/bar2')));
     }
 
     // Helper Methods

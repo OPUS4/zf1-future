@@ -278,15 +278,26 @@ class Zend_Date_DateObjectTest extends TestCase
     public function testCalcSunInternal()
     {
         $date = new Zend_Date_DateObjectTestHelper(10000000);
-        // PHP 7.2.0+ uses a newer algorithm for sunrise/sunset calculation apparently.
-        // Seems to be changed in this commit of "timelib":
-        // https://github.com/derickr/timelib/commit/8d0066f7110d4b8bd1a745bc6628c34577c34ba5
-        // Brought into PHP in this commit:
-        // https://github.com/php/php-src/commit/bdd56f31078bf1f34341943603cf6aaa72e0db5c#diff-b1c4e94d91863a5644d2e9402ec633f1L10
-        // (which was later reverted in php < 7.2.0)
-        // Example of the difference: https://3v4l.org/v46rk
-        // Not really something we can test the same in all versions, so doing a version_compare here.
-        if (PHP_VERSION_ID >= 80100) {
+        // calcSun() returns the times of date_sun_info(), with or without the refraction,
+        // see hasSunInfoRefractionFix()
+        if (self::hasSunInfoRefractionFix()) {
+            $this->assertSame(9961524, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, true));
+            $this->assertSame(10010533, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, false));
+            $this->assertSame(9966789, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, true));
+            $this->assertSame(10005268, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, false));
+            $this->assertSame(9947616, $date->calcSun(['latitude' => 38.4, 'longitude' => 29], -0.0145439, true));
+            $this->assertSame(9996604, $date->calcSun(['latitude' => 38.4, 'longitude' => 29], -0.0145439, false));
+            $this->assertSame(9952860, $date->calcSun(['latitude' => -38.4, 'longitude' => 29], -0.0145439, true));
+            $this->assertSame(9991360, $date->calcSun(['latitude' => -38.4, 'longitude' => 29], -0.0145439, false));
+            $this->assertSame(9923637, $date->calcSun(['latitude' => 38.4, 'longitude' => 129], -0.0145439, true));
+            $this->assertSame(9972589, $date->calcSun(['latitude' => 38.4, 'longitude' => 129], -0.0145439, false));
+            $this->assertSame(9928845, $date->calcSun(['latitude' => -38.4, 'longitude' => 129], -0.0145439, true));
+            $this->assertSame(9967381, $date->calcSun(['latitude' => -38.4, 'longitude' => 129], -0.0145439, false));
+            $this->assertSame(9985502, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, true));
+            $this->assertSame(10034549, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, false));
+            $this->assertSame(9990805, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, true));
+            $this->assertSame(10029247, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, false));
+        } else {
             $this->assertSame(9961443, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, true));
             $this->assertSame(10010614, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, false));
             $this->assertSame(9966709, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, true));
@@ -303,44 +314,27 @@ class Zend_Date_DateObjectTest extends TestCase
             $this->assertSame(10034630, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, false));
             $this->assertSame(9990725, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, true));
             $this->assertSame(10029327, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, false));
-        } else if (PHP_VERSION_ID >= 70200) {
-            $this->assertSame(9961716, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, true));
-            $this->assertSame(10010341, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, false));
-            $this->assertSame(9966981, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, true));
-            $this->assertSame(10005077, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, false));
-            $this->assertSame(9947808, $date->calcSun(['latitude' => 38.4, 'longitude' => 29], -0.0145439, true));
-            $this->assertSame(9996412, $date->calcSun(['latitude' => 38.4, 'longitude' => 29], -0.0145439, false));
-            $this->assertSame(9953052, $date->calcSun(['latitude' => -38.4, 'longitude' => 29], -0.0145439, true));
-            $this->assertSame(9991169, $date->calcSun(['latitude' => -38.4, 'longitude' => 29], -0.0145439, false));
-            $this->assertSame(9923830, $date->calcSun(['latitude' => 38.4, 'longitude' => 129], -0.0145439, true));
-            $this->assertSame(9972397, $date->calcSun(['latitude' => 38.4, 'longitude' => 129], -0.0145439, false));
-            $this->assertSame(9929036, $date->calcSun(['latitude' => -38.4, 'longitude' => 129], -0.0145439, true));
-            $this->assertSame(9967190, $date->calcSun(['latitude' => -38.4, 'longitude' => 129], -0.0145439, false));
-            $this->assertSame(9985695, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, true));
-            $this->assertSame(10034357, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, false));
-            $this->assertSame(9990996, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, true));
-            $this->assertSame(10029056, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, false));
-        } else {
-            $this->assertSame(9961681, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, true));
-            $this->assertSame(10010367, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, false));
-            $this->assertSame(9967006, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, true));
-            $this->assertSame(10005042, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, false));
-            $this->assertSame(9947773, $date->calcSun(['latitude' => 38.4, 'longitude' => 29], -0.0145439, true));
-            $this->assertSame(9996438, $date->calcSun(['latitude' => 38.4, 'longitude' => 29], -0.0145439, false));
-            $this->assertSame(9953077, $date->calcSun(['latitude' => -38.4, 'longitude' => 29], -0.0145439, true));
-            $this->assertSame(9991134, $date->calcSun(['latitude' => -38.4, 'longitude' => 29], -0.0145439, false));
-            $this->assertSame(9923795, $date->calcSun(['latitude' => 38.4, 'longitude' => 129], -0.0145439, true));
-            $this->assertSame(9972422, $date->calcSun(['latitude' => 38.4, 'longitude' => 129], -0.0145439, false));
-            $this->assertSame(9929062, $date->calcSun(['latitude' => -38.4, 'longitude' => 129], -0.0145439, true));
-            $this->assertSame(9967155, $date->calcSun(['latitude' => -38.4, 'longitude' => 129], -0.0145439, false));
-            $this->assertSame(9985660, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, true));
-            $this->assertSame(10034383, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, false));
-            $this->assertSame(9991022, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, true));
-            $this->assertSame(10029021, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, false));
         }
 
         $date = new Zend_Date_DateObjectTestHelper(-148309884);
-        if (PHP_VERSION_ID >= 80100) {
+        if (self::hasSunInfoRefractionFix()) {
+            $this->assertSame(-148322816, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, true));
+            $this->assertSame(-148274594, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, false));
+            $this->assertSame(-148318332, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, true));
+            $this->assertSame(-148279078, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, false));
+            $this->assertSame(-148336723, $date->calcSun(['latitude' => 38.4, 'longitude' => 29], -0.0145439, true));
+            $this->assertSame(-148288523, $date->calcSun(['latitude' => 38.4, 'longitude' => 29], -0.0145439, false));
+            $this->assertSame(-148332261, $date->calcSun(['latitude' => -38.4, 'longitude' => 29], -0.0145439, true));
+            $this->assertSame(-148292985, $date->calcSun(['latitude' => -38.4, 'longitude' => 29], -0.0145439, false));
+            $this->assertSame(-148360700, $date->calcSun(['latitude' => 38.4, 'longitude' => 129], -0.0145439, true));
+            $this->assertSame(-148312539, $date->calcSun(['latitude' => 38.4, 'longitude' => 129], -0.0145439, false));
+            $this->assertSame(-148356276, $date->calcSun(['latitude' => -38.4, 'longitude' => 129], -0.0145439, true));
+            $this->assertSame(-148316963, $date->calcSun(['latitude' => -38.4, 'longitude' => 129], -0.0145439, false));
+            $this->assertSame(-148298839, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, true));
+            $this->assertSame(-148250578, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, false));
+            $this->assertSame(-148294316, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, true));
+            $this->assertSame(-148255101, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, false));
+        } else {
             $this->assertSame(-148322895, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, true));
             $this->assertSame(-148274514, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, false));
             $this->assertSame(-148318410, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, true));
@@ -357,41 +351,21 @@ class Zend_Date_DateObjectTest extends TestCase
             $this->assertSame(-148250499, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, false));
             $this->assertSame(-148294395, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, true));
             $this->assertSame(-148255022, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, false));
-        } else if (PHP_VERSION_ID >= 70200) {
-            $this->assertSame(-148322626, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, true));
-            $this->assertSame(-148274784, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, false));
-            $this->assertSame(-148318143, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, true));
-            $this->assertSame(-148279267, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, false));
-            $this->assertSame(-148336533, $date->calcSun(['latitude' => 38.4, 'longitude' => 29], -0.0145439, true));
-            $this->assertSame(-148288713, $date->calcSun(['latitude' => 38.4, 'longitude' => 29], -0.0145439, false));
-            $this->assertSame(-148332072, $date->calcSun(['latitude' => -38.4, 'longitude' => 29], -0.0145439, true));
-            $this->assertSame(-148293174, $date->calcSun(['latitude' => -38.4, 'longitude' => 29], -0.0145439, false));
-            $this->assertSame(-148360510, $date->calcSun(['latitude' => 38.4, 'longitude' => 129], -0.0145439, true));
-            $this->assertSame(-148312728, $date->calcSun(['latitude' => 38.4, 'longitude' => 129], -0.0145439, false));
-            $this->assertSame(-148356087, $date->calcSun(['latitude' => -38.4, 'longitude' => 129], -0.0145439, true));
-            $this->assertSame(-148317151, $date->calcSun(['latitude' => -38.4, 'longitude' => 129], -0.0145439, false));
-            $this->assertSame(-148298649, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, true));
-            $this->assertSame(-148250768, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, false));
-            $this->assertSame(-148294127, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, true));
-            $this->assertSame(-148255290, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, false));
-        } else {
-            $this->assertSame(-148322663, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, true));
-            $this->assertSame(-148274758, $date->calcSun(['latitude' => 38.4, 'longitude' => -29], -0.0145439, false));
-            $this->assertSame(-148318117, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, true));
-            $this->assertSame(-148279304, $date->calcSun(['latitude' => -38.4, 'longitude' => -29], -0.0145439, false));
-            $this->assertSame(-148336570, $date->calcSun(['latitude' => 38.4, 'longitude' => 29], -0.0145439, true));
-            $this->assertSame(-148288687, $date->calcSun(['latitude' => 38.4, 'longitude' => 29], -0.0145439, false));
-            $this->assertSame(-148332046, $date->calcSun(['latitude' => -38.4, 'longitude' => 29], -0.0145439, true));
-            $this->assertSame(-148293211, $date->calcSun(['latitude' => -38.4, 'longitude' => 29], -0.0145439, false));
-            $this->assertSame(-148360548, $date->calcSun(['latitude' => 38.4, 'longitude' => 129], -0.0145439, true));
-            $this->assertSame(-148312703, $date->calcSun(['latitude' => 38.4, 'longitude' => 129], -0.0145439, false));
-            $this->assertSame(-148356061, $date->calcSun(['latitude' => -38.4, 'longitude' => 129], -0.0145439, true));
-            $this->assertSame(-148317189, $date->calcSun(['latitude' => -38.4, 'longitude' => 129], -0.0145439, false));
-            $this->assertSame(-148298686, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, true));
-            $this->assertSame(-148250742, $date->calcSun(['latitude' => 38.4, 'longitude' => -129], -0.0145439, false));
-            $this->assertSame(-148294101, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, true));
-            $this->assertSame(-148255327, $date->calcSun(['latitude' => -38.4, 'longitude' => -129], -0.0145439, false));
         }
+    }
+
+    /**
+     * Whether date_sun_info() takes the refraction into account for the sunrise
+     * and sunset: PHP 7.4, and PHP 8.3.22 and 8.4.8 on with the fix of
+     * https://github.com/php/php-src/issues/18076 (PHP 8.0 to 8.2 do not)
+     *
+     * @return bool
+     */
+    private static function hasSunInfoRefractionFix()
+    {
+        return PHP_VERSION_ID < 80000
+            || PHP_VERSION_ID >= 80408
+            || (PHP_VERSION_ID >= 80322 && PHP_VERSION_ID < 80400);
     }
 
     public function testGetDate()
@@ -661,6 +635,25 @@ class Zend_Date_DateObjectTest extends TestCase
         }
 
         $this->assertInstanceOf('Zend_Date', $date);
+    }
+
+    /**
+     * @group GH-441
+     */
+    public function testNewDateWithZhTwLocale()
+    {
+        $date = new Zend_Date('2020-01-13 10:00:03', 'yyyy-MM-dd HH:mm:ss', null);
+        $this->assertSame('2020-01-13T10:00:03+01:00', $date->get(Zend_Date::ISO_8601));
+
+        $date2 = new Zend_Date($date, null, 'zh_TW');
+        $this->assertSame('2020-01-13T10:00:03+01:00', $date2->get(Zend_Date::ISO_8601));
+        $this->assertSame('2020年1月13日 上午10:00:03', $date2->toString(null, null, 'zh_TW'));
+
+        $date3 = new Zend_Date('2020年1月13日 上午1:00:03', 'y年M月d日 ah:mm:ss', 'zh_TW');
+        $this->assertSame('2020-01-13T01:00:03+01:00', $date3->get(Zend_Date::ISO_8601));
+
+        $date4 = new Zend_Date('2020年1月13日 下午1:00:03', 'y年M月d日 ah:mm:ss', 'zh_TW');
+        $this->assertSame('2020-01-13T13:00:03+01:00', $date4->get(Zend_Date::ISO_8601));
     }
 }
 

@@ -38,6 +38,7 @@ require_once 'Zend/Service/ReCaptcha.php';
  * @copyright  Copyright (c) 2005-2015 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  * @version    $Id$
+ * @deprecated Uses the reCAPTCHA v1 API, which Google shut down in 2018; use Zend_Captcha_SiteVerify
  */
 class Zend_Captcha_ReCaptcha extends Zend_Captcha_Base
 {
@@ -52,7 +53,7 @@ class Zend_Captcha_ReCaptcha extends Zend_Captcha_Base
     /**
      * Recaptcha service object
      *
-     * @var Zend_Service_Recaptcha
+     * @var Zend_Service_ReCaptcha
      */
     protected $_service;
 
@@ -183,7 +184,7 @@ class Zend_Captcha_ReCaptcha extends Zend_Captcha_Base
      *
      * @param  string $key
      * @param  mixed $value
-     * @return Zend_Captcha_ReCaptcha
+     * @return $this
      */
     public function setOption($key, $value)
     {

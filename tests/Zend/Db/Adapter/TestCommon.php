@@ -32,6 +32,7 @@ require_once 'Zend/Db/TestSetup.php';
  * @see Zend_Loader
  */
 require_once 'Zend/Loader.php';
+require_once 'resources/ErrorCapture.php';
 
 
 
@@ -607,6 +608,18 @@ abstract class Zend_Db_Adapter_TestCommon extends Zend_Db_TestSetup
     /**
      * Test the Adapter's fetchPairs() method.
      */
+    /**
+     * @group GH-408
+     */
+    public function testAdapterFetchPairsWithSingleColumn()
+    {
+        $products = $this->_db->quoteIdentifier('zfproducts');
+        $product_id = $this->_db->quoteIdentifier('product_id');
+
+        $result = $this->_db->fetchPairs("SELECT $product_id FROM $products WHERE $product_id > ? ORDER BY $product_id ASC", 1);
+        $this->assertEquals([2 => null, 3 => null], $result);
+    }
+
     public function testAdapterFetchPairsAfterSetFetchMode()
     {
         $products = $this->_db->quoteIdentifier('zfproducts');
@@ -704,6 +717,20 @@ abstract class Zend_Db_Adapter_TestCommon extends Zend_Db_TestSetup
         $this->assertTrue(is_string($lastInsertId));
         $this->assertTrue(is_string($lastSequenceId));
         $this->assertEquals('4', (string) $lastInsertId, 'Expected new id to be 4');
+    }
+
+    /**
+     * The sequence test of a driver without sequences: the sequence methods return
+     * null and the key comes from the auto-increment column
+     */
+    protected function _testAdapterInsertWithoutSequence()
+    {
+        $this->assertNull($this->_db->nextSequenceId('zfproducts_seq'));
+        $this->assertNull($this->_db->lastSequenceId('zfproducts_seq'));
+
+        $rowsAffected = $this->_db->insert('zfproducts', ['product_name' => 'Solaris']);
+        $this->assertEquals(1, $rowsAffected);
+        $this->assertEquals('4', (string) $this->_db->lastInsertId('zfproducts'));
     }
 
     public function testAdapterInsertDbExpr()
@@ -1030,6 +1057,15 @@ abstract class Zend_Db_Adapter_TestCommon extends Zend_Db_TestSetup
         $string = 'String without quotes';
         $value = $this->_db->quote($string);
         $this->assertEquals("'String without quotes'", $value);
+    }
+
+    public function testAdapterQuoteNullIsAnEmptyString()
+    {
+        $value = null;
+        resources_ErrorCapture::assertTriggersNothing(function () use (&$value) {
+            $value = $this->_db->quote(null);
+        }, E_DEPRECATED);
+        $this->assertEquals("''", $value);
     }
 
     /**
@@ -1707,6 +1743,16 @@ abstract class Zend_Db_Adapter_TestCommon extends Zend_Db_TestSetup
         }
     }
 
+    /**
+     * Creates a second connection to the test database, with its own session
+     *
+     * @return Zend_Db_Adapter_Abstract
+     */
+    protected function _getSecondConnection()
+    {
+        return Zend_Db::factory($this->getDriver(), $this->_util->getParams());
+    }
+
     public function testAdapterTransactionAutoCommit()
     {
         $bugs = $this->_db->quoteIdentifier('zfbugs');
@@ -1716,7 +1762,7 @@ abstract class Zend_Db_Adapter_TestCommon extends Zend_Db_TestSetup
         $dbConnection1 = $this->_db;
 
         // create a second connection to the same database
-        $dbConnection2 = Zend_Db::factory($this->getDriver(), $this->_util->getParams());
+        $dbConnection2 = $this->_getSecondConnection();
         $dbConnection2->getConnection();
 
         // notice the number of rows in connection 2
@@ -1745,7 +1791,7 @@ abstract class Zend_Db_Adapter_TestCommon extends Zend_Db_TestSetup
         $dbConnection1 = $this->_db;
 
         // create a second connection to the same database
-        $dbConnection2 = Zend_Db::factory($this->getDriver(), $this->_util->getParams());
+        $dbConnection2 = $this->_getSecondConnection();
         $dbConnection2->getConnection();
               
         // notice the number of rows in connection 2
@@ -1796,7 +1842,7 @@ abstract class Zend_Db_Adapter_TestCommon extends Zend_Db_TestSetup
         $dbConnection1 = $this->_db;
 
         // create a second connection to the same database
-        $dbConnection2 = Zend_Db::factory($this->getDriver(), $this->_util->getParams());
+        $dbConnection2 = $this->_getSecondConnection();
         $dbConnection2->getConnection();
 
         // notice the number of rows in connection 2
@@ -2279,6 +2325,13 @@ abstract class Zend_Db_Adapter_TestCommon extends Zend_Db_TestSetup
 
         $stmt = $this->_db->query($select);
         $fetched = $stmt->fetchAll(Zend_Db::FETCH_NUM);
+        foreach ($fetched as &$row) {
+            // some PDO drivers return the CLOB of databases without TEXT as a stream
+            if (is_resource($row[1])) {
+                $row[1] = stream_get_contents($row[1]);
+            }
+        }
+        unset($row);
         $a = [
             0 => [0 => 1, 1 => $longValue],
             1 => [0 => 2, 1 => $longValue]
